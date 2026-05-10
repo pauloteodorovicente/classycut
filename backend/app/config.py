@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     export_dir: Path = storage_dir / "exports"
     temp_dir: Path = storage_dir / "temp"
 
+    # JWT authentication
+    jwt_secret_key: str = "change-me-in-production-use-openssl-rand-hex-32"
+    jwt_expire_days: int = 7
+
     # FFmpeg
     ffmpeg_path: str = "ffmpeg"
     ffprobe_path: str = "ffprobe"
