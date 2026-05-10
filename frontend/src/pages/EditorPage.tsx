@@ -15,6 +15,7 @@ import ExportTool from '../components/tools/ExportTool'
 import ZoomTool from '../components/tools/ZoomTool'
 import AITool from '../components/tools/AITool'
 import BatchTool from '../components/tools/BatchTool'
+import CutToolbar from '../components/tools/CutToolbar'
 import FileDropzone from '../components/shared/FileDropzone'
 import { getProject } from '../api/projects'
 import { listMedia, uploadMedia, deleteMedia } from '../api/media'
@@ -115,6 +116,8 @@ export default function EditorPage() {
         <AITool projectId={projectId} />
       ) : activeTool === 'batch' ? (
         <BatchTool projectId={projectId} />
+      ) : activeTool === 'cut' ? (
+        <CutToolbar projectId={projectId} />
       ) : activeTool === 'media' ? (
         <Sidebar onDeleteMedia={(id) => deleteMutation.mutate(id)} />
       ) : (
