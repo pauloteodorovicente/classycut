@@ -2,6 +2,7 @@ import {
   Film,
   Merge,
   Scissors,
+  Split,
   FileText,
   Subtitles,
   ZoomIn,
@@ -14,7 +15,8 @@ import { useUIStore } from '../../stores/uiStore'
 const tools = [
   { id: 'media' as const, icon: Film, label: 'Media' },
   { id: 'merge' as const, icon: Merge, label: 'Merge' },
-  { id: 'silence' as const, icon: Scissors, label: 'Cortes' },
+  { id: 'silence' as const, icon: Scissors, label: 'Auto-Corte' },
+  { id: 'cut' as const, icon: Split, label: 'Corte Manual' },
   { id: 'transcription' as const, icon: FileText, label: 'Transcrição' },
   { id: 'subtitles' as const, icon: Subtitles, label: 'Legendas' },
   { id: 'zoom' as const, icon: ZoomIn, label: 'Zoom' },
