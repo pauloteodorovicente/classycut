@@ -20,6 +20,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    from app.api.auth import router as auth_router
     from app.api.projects import router as projects_router
     from app.api.media import router as media_router
     from app.api.jobs import router as jobs_router
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
     from app.api.ai import router as ai_router
     from app.api.batch import router as batch_router
 
+    app.include_router(auth_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")
     app.include_router(media_router, prefix="/api/v1")
     app.include_router(jobs_router, prefix="/api/v1")
