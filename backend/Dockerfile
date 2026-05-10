@@ -12,8 +12,11 @@ COPY pyproject.toml ./
 RUN pip install --no-cache-dir . && \
     pip install --no-cache-dir uvicorn[standard]
 
-# Copy application code
+# Copy application code and startup script
 COPY app/ ./app/
+COPY alembic.ini ./
+COPY start.sh ./
+RUN chmod +x start.sh
 
 # Create storage directories
 RUN mkdir -p /data/uploads /data/projects /data/exports /data/temp
@@ -29,4 +32,4 @@ ENV CLASSYCUT_DATABASE_URL="sqlite:////data/classycut.db" \
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["sh", "start.sh"]
