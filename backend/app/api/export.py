@@ -4,7 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
-from app.api.deps import DbSession
+from app.api.deps import CurrentUser, DbSession
 from app.core.export import export_video
 from app.core.ffmpeg import extract_metadata
 from app.models.job import Job
@@ -21,8 +21,9 @@ def export(
     data: ExportRequest,
     background_tasks: BackgroundTasks,
     db: DbSession,
+    current_user: CurrentUser,
 ):
-    project = db.query(Project).filter(Project.id == project_id).first()
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
