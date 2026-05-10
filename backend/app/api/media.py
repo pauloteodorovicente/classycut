@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
-from app.api.deps import DbSession
+from app.api.deps import CurrentUser, DbSession
 from app.core.ffmpeg import extract_metadata, merge_video_audio, extract_waveform
 from app.models.job import Job
 from app.models.media import MediaFile
@@ -18,8 +18,8 @@ router = APIRouter(tags=["media"])
 
 
 @router.post("/projects/{project_id}/media", response_model=list[MediaResponse], status_code=201)
-def upload_media(project_id: str, files: list[UploadFile], db: DbSession):
-    project = db.query(Project).filter(Project.id == project_id).first()
+def upload_media(project_id: str, files: list[UploadFile], db: DbSession, current_user: CurrentUser):
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -57,7 +57,7 @@ def upload_media(project_id: str, files: list[UploadFile], db: DbSession):
 
 
 @router.get("/projects/{project_id}/media", response_model=list[MediaResponse])
-def list_media(project_id: str, db: DbSession):
+def list_media(project_id: str, db: DbSession, current_user: CurrentUser):
     media_files = (
         db.query(MediaFile)
         .filter(MediaFile.project_id == project_id)
@@ -68,7 +68,7 @@ def list_media(project_id: str, db: DbSession):
 
 
 @router.get("/media/{media_id}", response_model=MediaResponse)
-def get_media(media_id: str, db: DbSession):
+def get_media(media_id: str, db: DbSession, current_user: CurrentUser):
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
@@ -76,7 +76,7 @@ def get_media(media_id: str, db: DbSession):
 
 
 @router.get("/media/{media_id}/waveform")
-def get_waveform(media_id: str, db: DbSession, samples: int = 800):
+def get_waveform(media_id: str, db: DbSession, current_user: CurrentUser, samples: int = 800):
     """Return normalized waveform amplitude data for visualization."""
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:
@@ -86,7 +86,7 @@ def get_waveform(media_id: str, db: DbSession, samples: int = 800):
 
 
 @router.get("/media/{media_id}/stream")
-def stream_media(media_id: str, db: DbSession):
+def stream_media(media_id: str, db: DbSession, current_user: CurrentUser):
     """Stream media file with range request support for video playback."""
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:
@@ -116,7 +116,7 @@ def stream_media(media_id: str, db: DbSession):
 
 
 @router.delete("/media/{media_id}", status_code=204)
-def delete_media(media_id: str, db: DbSession):
+def delete_media(media_id: str, db: DbSession, current_user: CurrentUser):
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
@@ -136,9 +136,10 @@ def merge_media(
     data: MergeRequest,
     background_tasks: BackgroundTasks,
     db: DbSession,
+    current_user: CurrentUser,
 ):
     """Merge a video file with an audio file in the background."""
-    project = db.query(Project).filter(Project.id == project_id).first()
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
