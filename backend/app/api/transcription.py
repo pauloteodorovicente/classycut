@@ -78,7 +78,9 @@ def get_transcription(media_id: str, db: DbSession, current_user: CurrentUser):
     if not job or not job.result_json:
         raise HTTPException(status_code=404, detail="No transcription found for this media")
 
-    return json.loads(job.result_json)
+    result = json.loads(job.result_json)
+    result["job_id"] = job.id
+    return result
 
 
 @router.get("/media/{media_id}/subtitles")
