@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { FileText, Loader2, Download, Eye, EyeOff, Pencil, Check } from 'lucide-react'
+import { FileText, Loader2, Download, Eye, EyeOff, Pencil, Check, Flame } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranscriptionStore } from '../../stores/transcriptionStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { usePlayerStore } from '../../stores/playerStore'
-import { startTranscription, getTranscription, getSubtitleDownloadUrl } from '../../api/transcription'
+import { startTranscription, getTranscription, getSubtitleDownloadUrl, burnSubtitles } from '../../api/transcription'
 import { getJob } from '../../api/jobs'
 
 interface TranscriptionToolProps {
@@ -47,20 +48,27 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
     modelSize,
     requestLanguage,
     transcribeJobId,
+    completedTranscriptionJobId,
     subtitlesVisible,
     setSegments,
     setLanguage,
     setModelSize,
     setRequestLanguage,
     setTranscribeJobId,
+    setCompletedTranscriptionJobId,
     setSubtitlesVisible,
     updateSegmentText,
   } = useTranscriptionStore()
 
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editText, setEditText] = useState('')
+  const [burnFontSize, setBurnFontSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [burnPosition, setBurnPosition] = useState<'bottom' | 'top'>('bottom')
+  const [burnJobId, setBurnJobId] = useState<string | null>(null)
 
+  const queryClient = useQueryClient()
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const burnPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -81,6 +89,7 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
           const result = JSON.parse(job.result_json)
           setSegments(result.segments)
           setLanguage(result.language)
+          setCompletedTranscriptionJobId(transcribeJobId)
           setTranscribeJobId(null)
           stopPolling()
           toast.success(`Transcrição concluída! Idioma: ${result.language}`)
@@ -95,7 +104,7 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
     }, 2000)
 
     return stopPolling
-  }, [transcribeJobId, setSegments, setLanguage, setTranscribeJobId, stopPolling])
+  }, [transcribeJobId, setSegments, setLanguage, setCompletedTranscriptionJobId, setTranscribeJobId, stopPolling])
 
   // Load existing transcription when media changes
   useEffect(() => {
@@ -104,13 +113,51 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
       .then((result) => {
         setSegments(result.segments)
         setLanguage(result.language)
+        if (result.job_id) setCompletedTranscriptionJobId(result.job_id)
       })
       .catch(() => {
         // No existing transcription — that's fine
       })
-  }, [selectedMediaId, setSegments, setLanguage])
+  }, [selectedMediaId, setSegments, setLanguage, setCompletedTranscriptionJobId])
+
+  // Poll burn-in job
+  useEffect(() => {
+    if (!burnJobId) return
+    burnPollRef.current = setInterval(async () => {
+      try {
+        const job = await getJob(burnJobId)
+        if (job.status === 'done') {
+          setBurnJobId(null)
+          clearInterval(burnPollRef.current!)
+          queryClient.invalidateQueries({ queryKey: ['media', projectId] })
+          toast.success('Legendas embutidas! Novo arquivo criado.')
+        } else if (job.status === 'error') {
+          setBurnJobId(null)
+          clearInterval(burnPollRef.current!)
+          toast.error(`Erro no burn-in: ${job.error_message || 'Falha'}`)
+        }
+      } catch { /* keep polling */ }
+    }, 1500)
+    return () => { if (burnPollRef.current) clearInterval(burnPollRef.current) }
+  }, [burnJobId, projectId, queryClient])
 
   const selectedMedia = mediaFiles.find((f) => f.id === selectedMediaId)
+
+  const handleBurnSubtitles = async () => {
+    if (!selectedMediaId || !completedTranscriptionJobId) return
+    try {
+      const res = await burnSubtitles(projectId, {
+        media_id: selectedMediaId,
+        transcription_job_id: completedTranscriptionJobId,
+        font_size: burnFontSize,
+        position: burnPosition,
+      })
+      setBurnJobId(res.job_id)
+      toast('Embutindo legendas no vídeo...')
+    } catch {
+      toast.error('Erro ao embutir legendas')
+    }
+  }
 
   const handleTranscribe = async () => {
     if (!selectedMediaId) {
@@ -308,6 +355,64 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
                 )}
               </div>
             ))}
+          </div>
+          {/* Burn-in section */}
+          <div className="border-t border-[var(--border)] pt-3 space-y-3">
+            <h4 className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
+              <Flame className="w-3.5 h-3.5 text-orange-400" />
+              Embutir legendas no vídeo
+            </h4>
+            <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
+              Grava as legendas diretamente nos frames do vídeo — ideal para Instagram e TikTok.
+            </p>
+
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-[10px] text-[var(--text-secondary)] mb-1">Tamanho</label>
+                <select
+                  value={burnFontSize}
+                  onChange={(e) => setBurnFontSize(e.target.value as 'small' | 'medium' | 'large')}
+                  className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-[10px] rounded px-2 py-1 border border-[var(--border)]"
+                >
+                  <option value="small">Pequeno (16px)</option>
+                  <option value="medium">Médio (22px)</option>
+                  <option value="large">Grande (28px)</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-[10px] text-[var(--text-secondary)] mb-1">Posição</label>
+                <select
+                  value={burnPosition}
+                  onChange={(e) => setBurnPosition(e.target.value as 'bottom' | 'top')}
+                  className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-[10px] rounded px-2 py-1 border border-[var(--border)]"
+                >
+                  <option value="bottom">Inferior</option>
+                  <option value="top">Superior</option>
+                </select>
+              </div>
+            </div>
+
+            {!completedTranscriptionJobId && (
+              <p className="text-[10px] text-orange-400">
+                Faça uma transcrição primeiro para habilitar o burn-in.
+              </p>
+            )}
+
+            <button
+              onClick={handleBurnSubtitles}
+              disabled={!completedTranscriptionJobId || !!burnJobId}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-xs font-medium transition-colors
+                bg-orange-600 hover:bg-orange-700 text-white
+                disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Requer transcrição concluída"
+            >
+              {burnJobId ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Flame className="w-4 h-4" />
+              )}
+              {burnJobId ? 'Processando...' : 'Embutir legendas no vídeo'}
+            </button>
           </div>
         </>
       )}
