@@ -7,12 +7,14 @@ interface TranscriptionStore {
   modelSize: string
   requestLanguage: string | null
   transcribeJobId: string | null
+  completedTranscriptionJobId: string | null
   subtitlesVisible: boolean
   setSegments: (segments: TranscriptionSegment[]) => void
   setLanguage: (language: string | null) => void
   setModelSize: (size: string) => void
   setRequestLanguage: (lang: string | null) => void
   setTranscribeJobId: (id: string | null) => void
+  setCompletedTranscriptionJobId: (id: string | null) => void
   setSubtitlesVisible: (visible: boolean) => void
   updateSegmentText: (id: number, text: string) => void
   reset: () => void
@@ -24,12 +26,14 @@ export const useTranscriptionStore = create<TranscriptionStore>((set) => ({
   modelSize: 'base',
   requestLanguage: null,
   transcribeJobId: null,
+  completedTranscriptionJobId: null,
   subtitlesVisible: true,
   setSegments: (segments) => set({ segments }),
   setLanguage: (language) => set({ language }),
   setModelSize: (size) => set({ modelSize: size }),
   setRequestLanguage: (lang) => set({ requestLanguage: lang }),
   setTranscribeJobId: (id) => set({ transcribeJobId: id }),
+  setCompletedTranscriptionJobId: (id) => set({ completedTranscriptionJobId: id }),
   setSubtitlesVisible: (visible) => set({ subtitlesVisible: visible }),
   updateSegmentText: (id, text) =>
     set((state) => ({
