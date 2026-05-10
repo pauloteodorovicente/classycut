@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Split, Undo2, Trash2, CheckSquare, Square, Loader2, RotateCcw } from 'lucide-react'
+import { Split, Undo2, Redo2, Trash2, CheckSquare, Square, Loader2, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCutStore } from '../../stores/cutStore'
@@ -19,6 +19,7 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
   const {
     segments,
     history,
+    future,
     mediaId: storeMediaId,
     jobId,
     initFromMedia,
@@ -26,6 +27,7 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
     toggleKeep,
     removeSegment,
     undo,
+    redo,
     reset,
     setJobId,
   } = useCutStore()
@@ -81,6 +83,10 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault()
         undo()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault()
+        redo()
       }
     }
     window.addEventListener('keydown', handler)
@@ -171,6 +177,15 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
           <Undo2 className="w-3.5 h-3.5" />
         </button>
         <button
+          onClick={redo}
+          disabled={future.length === 0 || !!jobId}
+          className="px-2 py-2 rounded text-xs bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)]/80
+            disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title="Refazer (Ctrl+Y)"
+        >
+          <Redo2 className="w-3.5 h-3.5" />
+        </button>
+        <button
           onClick={reset}
           disabled={segments.length <= 1 && segments[0]?.keep === true || !!jobId}
           className="px-2 py-2 rounded text-xs bg-[var(--bg-tertiary)] hover:bg-red-500/20
@@ -198,7 +213,11 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-[var(--text-secondary)]">Desfazeres</span>
-            <span className="font-mono text-[var(--text-secondary)]">{history.length}/10</span>
+            <span className="font-mono text-[var(--text-secondary)]">{history.length}/100</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-[var(--text-secondary)]">Refazeres</span>
+            <span className="font-mono text-[var(--text-secondary)]">{future.length}/100</span>
           </div>
         </div>
       )}
