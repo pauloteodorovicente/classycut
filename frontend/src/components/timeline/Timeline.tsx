@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import { useProjectStore } from '../../stores/projectStore'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useSilenceStore } from '../../stores/silenceStore'
+import { useCutStore } from '../../stores/cutStore'
 import { useUIStore } from '../../stores/uiStore'
 import { Film, Music } from 'lucide-react'
 import { formatDuration } from '../../lib/formatters'
@@ -11,6 +12,7 @@ export default function Timeline() {
   const { mediaFiles, selectedMediaId, setSelectedMediaId } = useProjectStore()
   const { currentTime, duration, setSeekTo } = usePlayerStore()
   const { segments, toggleSegmentKeep, updateSegmentBounds } = useSilenceStore()
+  const { segments: cutSegments } = useCutStore()
   const { activeTool } = useUIStore()
 
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -20,21 +22,26 @@ export default function Timeline() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const showSilenceTimeline = activeTool === 'silence' && segments.length > 0
+  const showCutTimeline = activeTool === 'cut' && cutSegments.length > 0
 
   const totalMs = useMemo(
     () => (segments.length > 0 ? segments[segments.length - 1].end_ms : (duration * 1000) || 1),
     [segments, duration]
   )
+  const cutTotalMs = useMemo(
+    () => (cutSegments.length > 0 ? cutSegments[cutSegments.length - 1].end_ms : (duration * 1000) || 1),
+    [cutSegments, duration]
+  )
 
   // Fetch waveform when media changes
   useEffect(() => {
-    if (!selectedMediaId || !showSilenceTimeline) return
+    if (!selectedMediaId || (!showSilenceTimeline && !showCutTimeline)) return
     let cancelled = false
     getWaveform(selectedMediaId, 800)
       .then((data) => { if (!cancelled) setWaveformData(data) })
       .catch(() => {})
     return () => { cancelled = true; setWaveformData([]) }
-  }, [selectedMediaId, showSilenceTimeline])
+  }, [selectedMediaId, showSilenceTimeline, showCutTimeline])
 
   // Draw waveform on canvas
   useEffect(() => {
@@ -185,6 +192,98 @@ export default function Timeline() {
     return (
       <div className="h-36 bg-[var(--bg-secondary)] border-t border-[var(--border)] flex items-center justify-center">
         <p className="text-sm text-[var(--text-secondary)]">Importe media para começar a editar</p>
+      </div>
+    )
+  }
+
+  if (showCutTimeline) {
+    return (
+      <div
+        className="h-36 bg-[var(--bg-secondary)] border-t border-[var(--border)] flex flex-col select-none"
+        onWheel={handleWheel}
+      >
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-x-auto overflow-y-hidden cursor-pointer"
+          onClick={handleTimelineClick}
+        >
+          <div className="relative h-full" style={{ width: `${zoomLevel * 100}%` }}>
+            {/* Ruler */}
+            <div className="h-6 bg-[var(--bg-tertiary)] border-b border-[var(--border)] relative">
+              {rulerMarks.map((mark) => {
+                const pct = duration > 0 ? (mark.time / duration) * 100 : 0
+                return (
+                  <div
+                    key={mark.time}
+                    className="absolute top-0 h-full flex flex-col items-center pointer-events-none"
+                    style={{ left: `${pct}%` }}
+                  >
+                    <div className="w-px h-2 bg-[var(--text-secondary)] opacity-50" />
+                    <span className="text-[8px] text-[var(--text-secondary)] font-mono whitespace-nowrap">
+                      {mark.label}
+                    </span>
+                  </div>
+                )
+              })}
+              {/* Playhead on ruler */}
+              <div
+                className="absolute top-0 w-3 h-full flex flex-col items-center cursor-ew-resize z-20"
+                style={{ left: `calc(${playheadPercent}% - 6px)` }}
+                onMouseDown={startPlayheadDrag}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[6px] border-l-transparent border-r-transparent border-t-white mt-0.5" />
+                <div className="w-0.5 flex-1 bg-white" />
+              </div>
+            </div>
+
+            {/* Segments + waveform */}
+            <div className="relative" style={{ height: 'calc(100% - 24px - 20px)' }}>
+              {waveformData.length > 0 && (
+                <canvas
+                  ref={canvasRef}
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                />
+              )}
+
+              {cutSegments.map((seg) => {
+                const left = (seg.start_ms / cutTotalMs) * 100
+                const width = ((seg.end_ms - seg.start_ms) / cutTotalMs) * 100
+                return (
+                  <div
+                    key={seg.id}
+                    className={`absolute top-0 h-full border-r border-[var(--bg-secondary)] hover:brightness-125 cursor-pointer
+                      ${seg.keep ? 'bg-green-500/35' : 'bg-red-500/45'}`}
+                    style={{ left: `${left}%`, width: `${Math.max(width, 0.1)}%` }}
+                    onClick={(e) => e.stopPropagation()}
+                    title={`${seg.keep ? 'Manter' : 'Remover'}: ${formatDuration(seg.start_ms)} – ${formatDuration(seg.end_ms)}`}
+                  />
+                )
+              })}
+
+              {/* Playhead line */}
+              <div
+                className="absolute top-0 w-0.5 h-full bg-white z-10 pointer-events-none"
+                style={{ left: `${playheadPercent}%` }}
+              />
+            </div>
+
+            {/* Legend */}
+            <div className="h-5 flex items-center gap-4 px-3 border-t border-[var(--border)]">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-2 bg-green-500/35 rounded-sm" />
+                <span className="text-[9px] text-[var(--text-secondary)]">Manter</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-2 bg-red-500/45 rounded-sm" />
+                <span className="text-[9px] text-[var(--text-secondary)]">Remover</span>
+              </div>
+              <div className="ml-auto text-[9px] text-[var(--text-secondary)] font-mono">
+                Tecla C para cortar · Ctrl+Z desfazer · {zoomLevel.toFixed(1)}x
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
