@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - classycut-data:/data
+    environment:
+      - CLASSYCUT_DATABASE_URL=sqlite:////data/classycut.db
+      - CLASSYCUT_UPLOAD_DIR=/data/uploads
+      - CLASSYCUT_PROJECT_DIR=/data/projects
+      - CLASSYCUT_EXPORT_DIR=/data/exports
+      - CLASSYCUT_TEMP_DIR=/data/temp
+      - CLASSYCUT_DEBUG=false
+      - CLASSYCUT_CORS_ORIGINS=["http://localhost","http://localhost:80"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  classycut-data:
