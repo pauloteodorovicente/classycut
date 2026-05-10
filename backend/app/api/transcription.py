@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
-from app.api.deps import DbSession
+from app.api.deps import CurrentUser, DbSession
 from app.core.transcription import transcribe_media, generate_srt, generate_vtt
 from app.models.job import Job
 from app.models.media import MediaFile
@@ -20,8 +20,9 @@ def start_transcription(
     data: TranscribeRequest,
     background_tasks: BackgroundTasks,
     db: DbSession,
+    current_user: CurrentUser,
 ):
-    project = db.query(Project).filter(Project.id == project_id).first()
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -55,7 +56,7 @@ def start_transcription(
 
 
 @router.get("/media/{media_id}/transcription")
-def get_transcription(media_id: str, db: DbSession):
+def get_transcription(media_id: str, db: DbSession, current_user: CurrentUser):
     """Get the latest completed transcription for a media file."""
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:
@@ -82,6 +83,7 @@ def get_transcription(media_id: str, db: DbSession):
 def download_subtitles(
     media_id: str,
     db: DbSession,
+    current_user: CurrentUser,
     format: str = Query("srt", pattern="^(srt|vtt)$"),
 ):
     """Download subtitles as SRT or VTT file."""

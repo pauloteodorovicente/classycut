@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.api.deps import DbSession
+from app.api.deps import CurrentUser, DbSession
 from app.models.job import Job
 from app.schemas.job import JobResponse
 
@@ -8,7 +8,7 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
 @router.get("", response_model=list[JobResponse])
-def list_jobs(db: DbSession, status: str | None = None, project_id: str | None = None):
+def list_jobs(db: DbSession, current_user: CurrentUser, status: str | None = None, project_id: str | None = None):
     query = db.query(Job)
     if status:
         query = query.filter(Job.status == status)
@@ -18,7 +18,7 @@ def list_jobs(db: DbSession, status: str | None = None, project_id: str | None =
 
 
 @router.get("/{job_id}", response_model=JobResponse)
-def get_job(job_id: str, db: DbSession):
+def get_job(job_id: str, db: DbSession, current_user: CurrentUser):
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
