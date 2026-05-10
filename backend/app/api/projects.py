@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.api.deps import DbSession
+from app.api.deps import CurrentUser, DbSession
 from app.models.project import Project
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 
@@ -8,8 +8,8 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 
 @router.post("", response_model=ProjectResponse, status_code=201)
-def create_project(data: ProjectCreate, db: DbSession):
-    project = Project(name=data.name)
+def create_project(data: ProjectCreate, db: DbSession, current_user: CurrentUser):
+    project = Project(name=data.name, user_id=current_user.id)
     db.add(project)
     db.commit()
     db.refresh(project)
@@ -17,22 +17,35 @@ def create_project(data: ProjectCreate, db: DbSession):
 
 
 @router.get("", response_model=list[ProjectResponse])
-def list_projects(db: DbSession):
-    projects = db.query(Project).order_by(Project.updated_at.desc()).all()
+def list_projects(db: DbSession, current_user: CurrentUser):
+    projects = (
+        db.query(Project)
+        .filter(Project.user_id == current_user.id)
+        .order_by(Project.updated_at.desc())
+        .all()
+    )
     return [_to_response(p) for p in projects]
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
-def get_project(project_id: str, db: DbSession):
-    project = db.query(Project).filter(Project.id == project_id).first()
+def get_project(project_id: str, db: DbSession, current_user: CurrentUser):
+    project = (
+        db.query(Project)
+        .filter(Project.id == project_id, Project.user_id == current_user.id)
+        .first()
+    )
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return _to_response(project)
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)
-def update_project(project_id: str, data: ProjectUpdate, db: DbSession):
-    project = db.query(Project).filter(Project.id == project_id).first()
+def update_project(project_id: str, data: ProjectUpdate, db: DbSession, current_user: CurrentUser):
+    project = (
+        db.query(Project)
+        .filter(Project.id == project_id, Project.user_id == current_user.id)
+        .first()
+    )
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -47,8 +60,12 @@ def update_project(project_id: str, data: ProjectUpdate, db: DbSession):
 
 
 @router.delete("/{project_id}", status_code=204)
-def delete_project(project_id: str, db: DbSession):
-    project = db.query(Project).filter(Project.id == project_id).first()
+def delete_project(project_id: str, db: DbSession, current_user: CurrentUser):
+    project = (
+        db.query(Project)
+        .filter(Project.id == project_id, Project.user_id == current_user.id)
+        .first()
+    )
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     db.delete(project)
