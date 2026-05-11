@@ -21,6 +21,7 @@ import { getProject } from '../api/projects'
 import { listMedia, uploadMedia, deleteMedia } from '../api/media'
 import { useProjectStore } from '../stores/projectStore'
 import { useUIStore } from '../stores/uiStore'
+import { useHistoryStore } from '../stores/historyStore'
 
 export default function EditorPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -28,6 +29,7 @@ export default function EditorPage() {
   const queryClient = useQueryClient()
   const { selectedMediaId, setMediaFiles, addMediaFiles, removeMediaFile } = useProjectStore()
   const { activeTool } = useUIStore()
+  const { undo, redo, clear: clearHistory } = useHistoryStore()
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -49,6 +51,33 @@ export default function EditorPage() {
       setMediaFiles(mediaFiles)
     }
   }, [mediaFiles, setMediaFiles])
+
+  // Clear global history when selected media changes (AC-5)
+  const prevMediaRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (selectedMediaId !== prevMediaRef.current) {
+      prevMediaRef.current = selectedMediaId
+      if (selectedMediaId) clearHistory()
+    }
+  }, [selectedMediaId, clearHistory])
+
+  // Global Ctrl+Z / Ctrl+Y for all tools (AC-1, AC-2)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        undo()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [undo, redo])
 
   const uploadMutation = useMutation({
     mutationFn: (files: File[]) => uploadMedia(projectId!, files),

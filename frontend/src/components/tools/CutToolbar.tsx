@@ -3,6 +3,7 @@ import { Split, Undo2, Redo2, Trash2, CheckSquare, Square, Loader2, RotateCcw } 
 import toast from 'react-hot-toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCutStore } from '../../stores/cutStore'
+import { useHistoryStore } from '../../stores/historyStore'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { applyCuts } from '../../api/cuts'
@@ -18,19 +19,16 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
   const { currentTime, duration } = usePlayerStore()
   const {
     segments,
-    history,
-    future,
     mediaId: storeMediaId,
     jobId,
     initFromMedia,
     cutAtTime,
     toggleKeep,
     removeSegment,
-    undo,
-    redo,
     reset,
     setJobId,
   } = useCutStore()
+  const { past, future, undo, redo } = useHistoryStore()
   const queryClient = useQueryClient()
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -81,7 +79,7 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
     cutAtTime(timeMs)
   }
 
-  // Keyboard shortcuts
+  // Keyboard shortcut: C to cut (Ctrl+Z/Y handled globally in EditorPage)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName
@@ -89,14 +87,6 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault()
         handleCut()
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        e.preventDefault()
-        undo()
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-        e.preventDefault()
-        redo()
       }
     }
     window.addEventListener('keydown', handler)
@@ -169,7 +159,7 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
         </button>
         <button
           onClick={undo}
-          disabled={history.length === 0 || !!jobId}
+          disabled={past.length === 0 || !!jobId}
           className="px-2 py-2 rounded text-xs bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)]/80
             disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           title="Desfazer (Ctrl+Z)"
@@ -213,7 +203,7 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-[var(--text-secondary)]">Desfazeres</span>
-            <span className="font-mono text-[var(--text-secondary)]">{history.length}/100</span>
+            <span className="font-mono text-[var(--text-secondary)]">{past.length}/100</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-[var(--text-secondary)]">Refazeres</span>
