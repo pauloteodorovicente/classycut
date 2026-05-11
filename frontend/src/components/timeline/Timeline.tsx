@@ -6,7 +6,7 @@ import { useCutStore } from '../../stores/cutStore'
 import { useUIStore } from '../../stores/uiStore'
 import { Film, Music } from 'lucide-react'
 import { formatDuration } from '../../lib/formatters'
-import { getWaveform } from '../../api/media'
+import { useWaveform } from '../../hooks/useWaveform'
 
 export default function Timeline() {
   const { mediaFiles, selectedMediaId, setSelectedMediaId } = useProjectStore()
@@ -17,12 +17,14 @@ export default function Timeline() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const [zoomLevel, setZoomLevel] = useState(1)
-  const [waveformData, setWaveformData] = useState<number[]>([])
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const showSilenceTimeline = activeTool === 'silence' && segments.length > 0
   const showCutTimeline = activeTool === 'cut' && cutSegments.length > 0
+
+  const selectedMedia = mediaFiles.find((m) => m.id === selectedMediaId)
+  const { waveformData, isLoading, waveformColor } = useWaveform(selectedMediaId, selectedMedia?.media_type)
 
   const totalMs = useMemo(
     () => (segments.length > 0 ? segments[segments.length - 1].end_ms : (duration * 1000) || 1),
@@ -32,16 +34,6 @@ export default function Timeline() {
     () => (cutSegments.length > 0 ? cutSegments[cutSegments.length - 1].end_ms : (duration * 1000) || 1),
     [cutSegments, duration]
   )
-
-  // Fetch waveform when media changes
-  useEffect(() => {
-    if (!selectedMediaId || (!showSilenceTimeline && !showCutTimeline)) return
-    let cancelled = false
-    getWaveform(selectedMediaId, 800)
-      .then((data) => { if (!cancelled) setWaveformData(data) })
-      .catch(() => {})
-    return () => { cancelled = true; setWaveformData([]) }
-  }, [selectedMediaId, showSilenceTimeline, showCutTimeline])
 
   // Draw waveform on canvas
   useEffect(() => {
@@ -57,12 +49,12 @@ export default function Timeline() {
     const barWidth = canvas.width / waveformData.length
     const midY = canvas.height / 2
 
-    ctx.fillStyle = 'rgba(99, 179, 237, 0.5)'
+    ctx.fillStyle = waveformColor
     waveformData.forEach((amp, i) => {
       const barH = Math.max(1, amp * canvas.height * 0.9)
       ctx.fillRect(i * barWidth, midY - barH / 2, Math.max(1, barWidth - 0.5), barH)
     })
-  }, [waveformData, zoomLevel])
+  }, [waveformData, zoomLevel, waveformColor])
 
   // Ctrl+Wheel zoom
   const handleWheel = useCallback(
@@ -294,15 +286,24 @@ export default function Timeline() {
         <div className="h-6 bg-[var(--bg-tertiary)] border-b border-[var(--border)] flex items-center px-2">
           <span className="text-[10px] text-[var(--text-secondary)] font-mono">Timeline</span>
         </div>
-        <div className="flex-1 overflow-y-auto px-2 py-1 space-y-1">
+        <div className="relative flex-1 overflow-y-auto px-2 py-1 space-y-1">
+          {isLoading && (
+            <div className="absolute inset-0 pointer-events-none animate-pulse bg-[var(--accent)]/5" />
+          )}
+          {waveformData.length > 0 && (
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full pointer-events-none opacity-25"
+            />
+          )}
           {mediaFiles.map((media) => (
             <div
               key={media.id}
               onClick={() => setSelectedMediaId(media.id)}
-              className={`flex items-center gap-2 h-10 px-3 rounded cursor-pointer transition-colors
+              className={`relative flex items-center gap-2 h-10 px-3 rounded cursor-pointer transition-colors
                 ${selectedMediaId === media.id
                   ? 'bg-[var(--accent)]/30 border border-[var(--accent)]/50'
-                  : 'bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)]/80'}`}
+                  : 'bg-[var(--bg-tertiary)]/80 hover:bg-[var(--bg-tertiary)]'}`}
             >
               {media.media_type === 'video' ? (
                 <Film className="w-3.5 h-3.5 text-blue-400" />
