@@ -71,6 +71,16 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [jobId, projectId, queryClient, setJobId])
 
+  const handleCut = () => {
+    if (!selectedMediaId || duration <= 0) return
+    const timeMs = Math.round(currentTime * 1000)
+    if (timeMs <= 0 || timeMs >= (selectedMedia?.duration_ms ?? 0)) {
+      toast.error('Posicione o player em um ponto dentro do clipe')
+      return
+    }
+    cutAtTime(timeMs)
+  }
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -92,16 +102,6 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   })
-
-  const handleCut = () => {
-    if (!selectedMediaId || duration <= 0) return
-    const timeMs = Math.round(currentTime * 1000)
-    if (timeMs <= 0 || timeMs >= (selectedMedia?.duration_ms ?? 0)) {
-      toast.error('Posicione o player em um ponto dentro do clipe')
-      return
-    }
-    cutAtTime(timeMs)
-  }
 
   const handleApply = async () => {
     if (!selectedMediaId || !selectedMedia) return
