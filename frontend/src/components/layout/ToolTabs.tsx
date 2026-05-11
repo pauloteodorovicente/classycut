@@ -13,6 +13,7 @@ import {
   ArrowUpFromLine,
   Zap,
   BookOpen,
+  AlignLeft,
 } from 'lucide-react'
 import { useUIStore } from '../../stores/uiStore'
 
@@ -31,6 +32,7 @@ const tools = [
   { id: 'upscale' as const, icon: ArrowUpFromLine, label: 'Upscale' },
   { id: 'highlights' as const, icon: Zap, label: 'Highlights' },
   { id: 'chapters' as const, icon: BookOpen, label: 'Capítulos' },
+  { id: 'summary' as const, icon: AlignLeft, label: 'Resumo' },
 ]
 
 export default function ToolTabs() {

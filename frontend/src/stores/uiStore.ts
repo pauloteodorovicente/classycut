@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-type ActiveTool = 'media' | 'merge' | 'silence' | 'cut' | 'transcription' | 'subtitles' | 'zoom' | 'export' | 'ai' | 'batch' | 'compression' | 'upscale' | 'highlights' | 'chapters'
+type ActiveTool = 'media' | 'merge' | 'silence' | 'cut' | 'transcription' | 'subtitles' | 'zoom' | 'export' | 'ai' | 'batch' | 'compression' | 'upscale' | 'highlights' | 'chapters' | 'summary'
 
 export type PlatformPreset = 'original' | 'instagram_reels' | 'tiktok' | 'youtube_shorts' | 'whatsapp' | 'youtube'
 
