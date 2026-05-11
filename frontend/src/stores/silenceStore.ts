@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { SilenceSegment } from '../types/silence'
+import { useHistoryStore } from './historyStore'
 
 interface SilenceStore {
   segments: SilenceSegment[]
@@ -20,7 +21,7 @@ interface SilenceStore {
   reset: () => void
 }
 
-export const useSilenceStore = create<SilenceStore>((set) => ({
+export const useSilenceStore = create<SilenceStore>((set, get) => ({
   segments: [],
   noiseDb: -30,
   minDuration: 0.5,
@@ -33,29 +34,44 @@ export const useSilenceStore = create<SilenceStore>((set) => ({
   setSpeechPaddingMs: (ms) => set({ speechPaddingMs: ms }),
   setDetectionJobId: (id) => set({ detectionJobId: id }),
   setCutJobId: (id) => set({ cutJobId: id }),
-  toggleSegmentKeep: (index) =>
-    set((state) => {
-      const segments = [...state.segments]
-      if (segments[index]) {
-        segments[index] = { ...segments[index], keep: !segments[index].keep }
-      }
-      return { segments }
-    }),
-  setAllSilenceKeep: (keep) =>
-    set((state) => ({
-      segments: state.segments.map((seg) =>
-        seg.type === 'silence' ? { ...seg, keep } : seg
-      ),
-    })),
-  updateSegmentBounds: (index, start_ms, end_ms) =>
-    set((state) => {
-      const segments = [...state.segments]
-      if (segments[index]) {
-        const duration_ms = end_ms - start_ms
-        segments[index] = { ...segments[index], start_ms, end_ms, duration_ms }
-      }
-      return { segments }
-    }),
+
+  toggleSegmentKeep: (index) => {
+    const prevSegments = get().segments
+    const nextSegments = prevSegments.map((seg, i) =>
+      i === index ? { ...seg, keep: !seg.keep } : seg
+    )
+    useHistoryStore.getState().execute({
+      description: `Toggle silence segment ${index}`,
+      execute: () => set({ segments: nextSegments }),
+      undo: () => set({ segments: prevSegments }),
+    })
+  },
+
+  setAllSilenceKeep: (keep) => {
+    const prevSegments = get().segments
+    const nextSegments = prevSegments.map((seg) =>
+      seg.type === 'silence' ? { ...seg, keep } : seg
+    )
+    useHistoryStore.getState().execute({
+      description: `Set all silence keep=${keep}`,
+      execute: () => set({ segments: nextSegments }),
+      undo: () => set({ segments: prevSegments }),
+    })
+  },
+
+  updateSegmentBounds: (index, start_ms, end_ms) => {
+    const prevSegments = get().segments
+    const nextSegments = prevSegments.map((seg, i) => {
+      if (i !== index) return seg
+      return { ...seg, start_ms, end_ms, duration_ms: end_ms - start_ms }
+    })
+    useHistoryStore.getState().execute({
+      description: `Update segment ${index} bounds`,
+      execute: () => set({ segments: nextSegments }),
+      undo: () => set({ segments: prevSegments }),
+    })
+  },
+
   reset: () =>
     set({
       segments: [],
