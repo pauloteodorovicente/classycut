@@ -10,6 +10,7 @@ import {
   Sparkles,
   Layers,
   Minimize2,
+  ArrowUpFromLine,
 } from 'lucide-react'
 import { useUIStore } from '../../stores/uiStore'
 
@@ -25,6 +26,7 @@ const tools = [
   { id: 'ai' as const, icon: Sparkles, label: 'AI' },
   { id: 'batch' as const, icon: Layers, label: 'Batch' },
   { id: 'compression' as const, icon: Minimize2, label: 'Comprimir' },
+  { id: 'upscale' as const, icon: ArrowUpFromLine, label: 'Upscale' },
 ]
 
 export default function ToolTabs() {
