@@ -34,6 +34,7 @@ def create_app() -> FastAPI:
     from app.api.compression import router as compression_router
     from app.api.upscale import router as upscale_router
     from app.api.highlights import router as highlights_router
+    from app.api.chapters import router as chapters_router
 
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")
@@ -49,6 +50,7 @@ def create_app() -> FastAPI:
     app.include_router(compression_router, prefix="/api/v1")
     app.include_router(upscale_router, prefix="/api/v1")
     app.include_router(highlights_router, prefix="/api/v1")
+    app.include_router(chapters_router, prefix="/api/v1")
 
     @app.get("/api/health")
     def health_check():
