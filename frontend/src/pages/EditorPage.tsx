@@ -18,6 +18,7 @@ import BatchTool from '../components/tools/BatchTool'
 import CutToolbar from '../components/tools/CutToolbar'
 import CompressionTool from '../components/tools/CompressionTool'
 import UpscaleTool from '../components/tools/UpscaleTool'
+import HighlightsTool from '../components/tools/HighlightsTool'
 import FileDropzone from '../components/shared/FileDropzone'
 import ShareModal from '../components/shared/ShareModal'
 import { getProject } from '../api/projects'
@@ -163,6 +164,8 @@ export default function EditorPage() {
         <CompressionTool projectId={projectId} />
       ) : activeTool === 'upscale' ? (
         <UpscaleTool projectId={projectId} />
+      ) : activeTool === 'highlights' ? (
+        <HighlightsTool projectId={projectId} />
       ) : activeTool === 'media' ? (
         <Sidebar onDeleteMedia={(id) => deleteMutation.mutate(id)} />
       ) : (
