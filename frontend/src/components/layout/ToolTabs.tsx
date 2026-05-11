@@ -12,6 +12,7 @@ import {
   Minimize2,
   ArrowUpFromLine,
   Zap,
+  BookOpen,
 } from 'lucide-react'
 import { useUIStore } from '../../stores/uiStore'
 
@@ -29,6 +30,7 @@ const tools = [
   { id: 'compression' as const, icon: Minimize2, label: 'Comprimir' },
   { id: 'upscale' as const, icon: ArrowUpFromLine, label: 'Upscale' },
   { id: 'highlights' as const, icon: Zap, label: 'Highlights' },
+  { id: 'chapters' as const, icon: BookOpen, label: 'Capítulos' },
 ]
 
 export default function ToolTabs() {
