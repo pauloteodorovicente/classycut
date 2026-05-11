@@ -16,6 +16,7 @@ import ZoomTool from '../components/tools/ZoomTool'
 import AITool from '../components/tools/AITool'
 import BatchTool from '../components/tools/BatchTool'
 import CutToolbar from '../components/tools/CutToolbar'
+import CompressionTool from '../components/tools/CompressionTool'
 import FileDropzone from '../components/shared/FileDropzone'
 import ShareModal from '../components/shared/ShareModal'
 import { getProject } from '../api/projects'
@@ -157,6 +158,8 @@ export default function EditorPage() {
         <BatchTool projectId={projectId} />
       ) : activeTool === 'cut' ? (
         <CutToolbar projectId={projectId} />
+      ) : activeTool === 'compression' ? (
+        <CompressionTool projectId={projectId} />
       ) : activeTool === 'media' ? (
         <Sidebar onDeleteMedia={(id) => deleteMutation.mutate(id)} />
       ) : (

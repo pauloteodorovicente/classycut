@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-type ActiveTool = 'media' | 'merge' | 'silence' | 'cut' | 'transcription' | 'subtitles' | 'zoom' | 'export' | 'ai' | 'batch'
+type ActiveTool = 'media' | 'merge' | 'silence' | 'cut' | 'transcription' | 'subtitles' | 'zoom' | 'export' | 'ai' | 'batch' | 'compression'
 
 interface UIStore {
   activeTool: ActiveTool
