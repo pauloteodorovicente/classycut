@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FileText, Loader2, Download, Eye, EyeOff, Pencil, Check, Flame } from 'lucide-react'
+import TranscriptEditor from './TranscriptEditor'
 import toast from 'react-hot-toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranscriptionStore } from '../../stores/transcriptionStore'
@@ -414,6 +415,9 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
               {burnJobId ? 'Processando...' : 'Embutir legendas no vídeo'}
             </button>
           </div>
+
+          {/* T-13: TranscriptEditor — click-to-seek + text selection cuts */}
+          <TranscriptEditor segments={segments} />
         </>
       )}
     </div>
