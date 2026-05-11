@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Upload } from 'lucide-react'
+import { ArrowLeft, Upload, Share2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import AppShell from '../components/layout/AppShell'
 import ToolTabs from '../components/layout/ToolTabs'
@@ -17,6 +17,7 @@ import AITool from '../components/tools/AITool'
 import BatchTool from '../components/tools/BatchTool'
 import CutToolbar from '../components/tools/CutToolbar'
 import FileDropzone from '../components/shared/FileDropzone'
+import ShareModal from '../components/shared/ShareModal'
 import { getProject } from '../api/projects'
 import { listMedia, uploadMedia, deleteMedia } from '../api/media'
 import { useProjectStore } from '../stores/projectStore'
@@ -30,6 +31,7 @@ export default function EditorPage() {
   const { selectedMediaId, setMediaFiles, addMediaFiles, removeMediaFile } = useProjectStore()
   const { activeTool } = useUIStore()
   const { undo, redo, clear: clearHistory } = useHistoryStore()
+  const [showShareModal, setShowShareModal] = useState(false)
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -110,6 +112,14 @@ export default function EditorPage() {
       </button>
       <h1 className="text-sm font-medium">{project?.name || 'Carregando...'}</h1>
       <div className="flex-1" />
+      <button
+        onClick={() => setShowShareModal(true)}
+        className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--border)] hover:border-[var(--accent)] rounded text-xs font-medium transition-colors"
+        title="Compartilhar projeto"
+      >
+        <Share2 className="w-3.5 h-3.5" />
+        Compartilhar
+      </button>
       <label className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded text-xs font-medium cursor-pointer transition-colors">
         <Upload className="w-3.5 h-3.5" />
         Importar
@@ -170,11 +180,16 @@ export default function EditorPage() {
   )
 
   return (
-    <AppShell
-      toolbar={toolbar}
-      sidebar={sidebarContent}
-      preview={preview}
-      timeline={<Timeline />}
-    />
+    <>
+      <AppShell
+        toolbar={toolbar}
+        sidebar={sidebarContent}
+        preview={preview}
+        timeline={<Timeline />}
+      />
+      {showShareModal && (
+        <ShareModal projectId={projectId} onClose={() => setShowShareModal(false)} />
+      )}
+    </>
   )
 }

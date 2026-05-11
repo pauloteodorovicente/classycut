@@ -18,6 +18,7 @@ class Project(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     settings_json: Mapped[str] = mapped_column(Text, default="{}")
+    share_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow

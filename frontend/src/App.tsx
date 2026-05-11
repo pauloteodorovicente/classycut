@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import EditorPage from './pages/EditorPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import SharePage from './pages/SharePage'
 
 export default function App() {
   const loadUser = useAuthStore((s) => s.loadUser)
@@ -34,6 +35,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/share/:token" element={<SharePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

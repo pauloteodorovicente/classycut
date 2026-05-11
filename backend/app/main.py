@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
     from app.api.zoom import router as zoom_router
     from app.api.ai import router as ai_router
     from app.api.batch import router as batch_router
+    from app.api.share import router as share_router
 
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(zoom_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")
     app.include_router(batch_router, prefix="/api/v1")
+    app.include_router(share_router, prefix="/api/v1")
 
     @app.get("/api/health")
     def health_check():
