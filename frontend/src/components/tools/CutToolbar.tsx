@@ -6,6 +6,8 @@ import { useCutStore } from '../../stores/cutStore'
 import { useHistoryStore } from '../../stores/historyStore'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { useUIStore } from '../../stores/uiStore'
+import PlatformSelector from '../ui/PlatformSelector'
 import { applyCuts } from '../../api/cuts'
 import { getJob } from '../../api/jobs'
 import { formatDuration } from '../../lib/formatters'
@@ -29,6 +31,7 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
     setJobId,
   } = useCutStore()
   const { past, future, undo, redo } = useHistoryStore()
+  const { platformPreset } = useUIStore()
   const queryClient = useQueryClient()
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -106,7 +109,7 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
     const ext = selectedMedia.filename.split('.').pop() || 'mp4'
     const outputName = `${selectedMedia.filename.replace(/\.[^.]+$/, '')}_cortado.${ext}`
     try {
-      const res = await applyCuts(projectId, selectedMediaId, toKeep, outputName)
+      const res = await applyCuts(projectId, selectedMediaId, toKeep, outputName, platformPreset !== 'original' ? platformPreset : undefined)
       setJobId(res.job_id)
       toast('Processando corte...')
     } catch {
@@ -248,6 +251,9 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
           ))}
         </div>
       )}
+
+      {/* Platform selector — AC-1, AC-6 */}
+      <PlatformSelector />
 
       {/* Apply button */}
       <button

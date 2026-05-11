@@ -96,6 +96,8 @@ def silence_cut(
         file_path=media.file_path,
         segments_to_keep=segments_dicts,
         output_name=data.output_name,
+        platform=data.platform,
+        duration_s=(media.duration_ms or 0) / 1000,
     )
 
     return {"job_id": job.id, "status": "queued"}
@@ -180,6 +182,8 @@ def _run_silence_cut(
     file_path: str,
     segments_to_keep: list[dict],
     output_name: str,
+    platform: str | None = None,
+    duration_s: float = 0,
 ):
     from app.database import SessionLocal
 
@@ -194,10 +198,44 @@ def _run_silence_cut(
         db.commit()
 
         from app.config import settings
+        from app.core.presets import get_max_mb, get_vf_filter
 
         output_path = settings.upload_dir / project_id / output_name
 
         cut_segments(file_path, segments_to_keep, output_path)
+
+        # Apply platform crop+scale if requested
+        vf = get_vf_filter(platform) if platform else None
+        if vf:
+            import subprocess
+            scaled_path = output_path.with_name(output_path.stem + "_scaled.mp4")
+            cmd = [
+                settings.ffmpeg_path,
+                "-y",
+                "-i", str(output_path),
+                "-vf", vf,
+                "-c:v", "libx264",
+                "-crf", "23",
+                "-c:a", "aac",
+                "-b:a", "128k",
+                str(scaled_path),
+            ]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
+            if res.returncode != 0:
+                raise RuntimeError(f"FFmpeg platform filter failed: {res.stderr}")
+            output_path.unlink(missing_ok=True)
+            scaled_path.rename(output_path)
+
+        # Apply compression for platforms with max file size (e.g. WhatsApp 16 MB)
+        max_mb = get_max_mb(platform) if platform else None
+        if max_mb:
+            current_size_mb = os.path.getsize(output_path) / 1024 / 1024
+            if current_size_mb > max_mb:
+                from app.core.compression import compress_video
+                compressed_path = output_path.with_name(output_path.stem + "_cmp.mp4")
+                compress_video(str(output_path), str(compressed_path), max_mb, duration_s)
+                output_path.unlink(missing_ok=True)
+                compressed_path.rename(output_path)
 
         metadata = extract_metadata(output_path)
         file_size = os.path.getsize(output_path)

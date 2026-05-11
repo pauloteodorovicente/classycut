@@ -24,3 +24,4 @@ class SilenceCutRequest(BaseModel):
     media_id: str
     segments_to_keep: list[SegmentRange]
     output_name: str = "cut_output.mp4"
+    platform: str | None = None
