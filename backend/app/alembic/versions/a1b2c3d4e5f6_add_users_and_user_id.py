@@ -38,7 +38,7 @@ def upgrade() -> None:
     if "user_id" not in existing_columns_projects:
         op.add_column(
             "projects",
-            sa.Column("user_id", sa.String(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=True),
+            sa.Column("user_id", sa.String(), nullable=True),
         )
 
     existing_indexes_projects = [idx["name"] for idx in inspector.get_indexes("projects")]
