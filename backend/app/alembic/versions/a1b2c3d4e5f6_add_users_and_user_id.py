@@ -16,21 +16,34 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "users",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("email", sa.String(), nullable=False),
-        sa.Column("hashed_password", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index("ix_users_email", "users", ["email"], unique=True)
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_tables = inspector.get_table_names()
 
-    op.add_column(
-        "projects",
-        sa.Column("user_id", sa.String(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=True),
-    )
-    op.create_index("ix_projects_user_id", "projects", ["user_id"])
+    if "users" not in existing_tables:
+        op.create_table(
+            "users",
+            sa.Column("id", sa.String(), nullable=False),
+            sa.Column("email", sa.String(), nullable=False),
+            sa.Column("hashed_password", sa.String(), nullable=False),
+            sa.Column("created_at", sa.DateTime(), nullable=True),
+            sa.PrimaryKeyConstraint("id"),
+        )
+
+    existing_indexes_users = [idx["name"] for idx in inspector.get_indexes("users")] if "users" in existing_tables else []
+    if "ix_users_email" not in existing_indexes_users:
+        op.create_index("ix_users_email", "users", ["email"], unique=True)
+
+    existing_columns_projects = [col["name"] for col in inspector.get_columns("projects")]
+    if "user_id" not in existing_columns_projects:
+        op.add_column(
+            "projects",
+            sa.Column("user_id", sa.String(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=True),
+        )
+
+    existing_indexes_projects = [idx["name"] for idx in inspector.get_indexes("projects")]
+    if "ix_projects_user_id" not in existing_indexes_projects:
+        op.create_index("ix_projects_user_id", "projects", ["user_id"])
 
 
 def downgrade() -> None:
