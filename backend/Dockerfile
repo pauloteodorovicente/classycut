@@ -1,9 +1,10 @@
+FROM mwader/static-ffmpeg:7.0 AS ffmpeg-builder
+
 FROM python:3.12-slim
 
-# Install FFmpeg
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
+# Copy statically compiled ffmpeg binaries (avoids apt-get network issues)
+COPY --from=ffmpeg-builder /ffmpeg /usr/local/bin/ffmpeg
+COPY --from=ffmpeg-builder /ffprobe /usr/local/bin/ffprobe
 
 WORKDIR /app
 
@@ -21,7 +22,7 @@ RUN chmod +x start.sh
 # Create storage directories
 RUN mkdir -p /data/uploads /data/projects /data/exports /data/temp
 
-# Environment defaults (override via docker-compose or .env)
+# Environment defaults (override via Railway Variables)
 ENV CLASSYCUT_DATABASE_URL="sqlite:////data/classycut.db" \
     CLASSYCUT_UPLOAD_DIR="/data/uploads" \
     CLASSYCUT_PROJECT_DIR="/data/projects" \

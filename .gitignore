@@ -3,12 +3,14 @@
 # ============================================================
 .aiox-core/
 .aiox/
+.agent/
 .antigravity/
 .claude/
 .codex/
 .cursor/
 .gemini/
 .github/
+.kimi/
 AGENTS.md
 .env
 .env.local
@@ -79,3 +81,11 @@ logs/
 # Build artifacts
 # ============================================================
 build/
+
+# Dependencies (AIOX)
+node_modules
+
+# AIOX Local (AIOX)
+.aiox-core/local/
+.claude/settings.local.json
+.aiox/install-log.txt
