@@ -22,9 +22,13 @@ def upgrade() -> None:
     if "share_token" not in existing_columns:
         op.add_column(
             "projects",
-            sa.Column("share_token", sa.String(64), unique=True, nullable=True),
+            sa.Column("share_token", sa.String(64), nullable=True),
         )
+    existing_indexes = [idx["name"] for idx in inspector.get_indexes("projects")]
+    if "ix_projects_share_token" not in existing_indexes:
+        op.create_index("ix_projects_share_token", "projects", ["share_token"], unique=True)
 
 
 def downgrade() -> None:
+    op.drop_index("ix_projects_share_token", table_name="projects")
     op.drop_column("projects", "share_token")

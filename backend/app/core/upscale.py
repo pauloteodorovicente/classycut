@@ -6,6 +6,11 @@ from pathlib import Path
 from app.config import settings
 
 
+def is_realesrgan_available() -> bool:
+    from app.config import settings
+    return shutil.which(settings.realesrgan_path) is not None
+
+
 def upscale_video(
     file_path: str | Path,
     output_path: str | Path,
