@@ -5,8 +5,10 @@ import { useAuthStore } from '../stores/authStore'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { register, isLoading, error } = useAuthStore()
+  const { register, isLoading, error, clearError } = useAuthStore()
   const navigate = useNavigate()
+
+  useState(() => { clearError() })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

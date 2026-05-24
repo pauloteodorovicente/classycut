@@ -12,6 +12,7 @@ interface AuthState {
   register: (email: string, password: string) => Promise<void>
   logout: () => void
   loadUser: () => Promise<void>
+  clearError: () => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -52,6 +53,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem(TOKEN_KEY)
     set({ token: null, user: null, error: null })
   },
+
+  clearError: () => set({ error: null }),
 
   loadUser: async () => {
     const token = localStorage.getItem(TOKEN_KEY)
