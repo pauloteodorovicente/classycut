@@ -3,28 +3,23 @@ from pathlib import Path
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_DEFAULT_STORAGE = _PROJECT_ROOT / "storage"
+
 
 class Settings(BaseSettings):
     app_name: str = "ClassyCut"
     debug: bool = True
 
-    # Database — defaults to storage/classycut.db relative to the project.
-    # Override with CLASSYCUT_DATABASE_URL env var (e.g. postgresql://... in production).
+    # Database
     database_url: str = ""
 
-    # Storage paths
-    base_dir: Path = Path(__file__).resolve().parent.parent.parent
-    storage_dir: Path = base_dir / "storage"
-
-    @model_validator(mode="after")
-    def set_default_database_url(self) -> "Settings":
-        if not self.database_url:
-            self.database_url = f"sqlite:///{self.storage_dir / 'classycut.db'}"
-        return self
-    upload_dir: Path = storage_dir / "uploads"
-    project_dir: Path = storage_dir / "projects"
-    export_dir: Path = storage_dir / "exports"
-    temp_dir: Path = storage_dir / "temp"
+    # Storage paths — all overridable via CLASSYCUT_* env vars
+    storage_dir: Path = _DEFAULT_STORAGE
+    upload_dir: Path = _DEFAULT_STORAGE / "uploads"
+    project_dir: Path = _DEFAULT_STORAGE / "projects"
+    export_dir: Path = _DEFAULT_STORAGE / "exports"
+    temp_dir: Path = _DEFAULT_STORAGE / "temp"
 
     # JWT authentication
     jwt_secret_key: str = "change-me-in-production-use-openssl-rand-hex-32"
@@ -42,6 +37,12 @@ class Settings(BaseSettings):
 
     # CORS
     cors_origins: list[str] = ["http://localhost:5173"]
+
+    @model_validator(mode="after")
+    def set_default_database_url(self) -> "Settings":
+        if not self.database_url:
+            self.database_url = f"sqlite:///{self.storage_dir / 'classycut.db'}"
+        return self
 
     model_config = {"env_prefix": "CLASSYCUT_", "env_file": ".env"}
 
