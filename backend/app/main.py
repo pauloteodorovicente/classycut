@@ -12,12 +12,13 @@ def create_app() -> FastAPI:
         openapi_url="/api/openapi.json",
     )
 
-    allow_all = settings.cors_origins == ["*"]
+    explicit_origins = [o for o in settings.cors_origins if o != "*"]
+    allow_all = len(explicit_origins) < len(settings.cors_origins)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_origin_regex=r"https://.*\.vercel\.app" if allow_all else None,
-        allow_credentials=not allow_all,
+        allow_origins=explicit_origins,
+        allow_origin_regex=r"https?://.*" if allow_all else r"https://.*\.vercel\.app",
+        allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
