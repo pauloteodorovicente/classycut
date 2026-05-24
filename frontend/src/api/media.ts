@@ -6,7 +6,11 @@ export async function listMedia(projectId: string): Promise<MediaFile[]> {
   return data
 }
 
-export async function uploadMedia(projectId: string, files: File[]): Promise<MediaFile[]> {
+export async function uploadMedia(
+  projectId: string,
+  files: File[],
+  onProgress?: (percent: number) => void
+): Promise<MediaFile[]> {
   const formData = new FormData()
   files.forEach((file) => formData.append('files', file))
 
@@ -15,22 +19,30 @@ export async function uploadMedia(projectId: string, files: File[]): Promise<Med
     : '/api/v1'
   const token = localStorage.getItem('classycut_token')
 
-  // Use fetch instead of axios so the browser sets Content-Type with the correct multipart boundary
-  const response = await fetch(`${base}/projects/${projectId}/media`, {
-    method: 'POST',
-    body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${base}/projects/${projectId}/media`)
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
 
-  if (response.status === 401) {
-    localStorage.removeItem('classycut_token')
-    window.location.href = '/login'
-    throw new Error('Unauthorized')
-  }
-  if (!response.ok) {
-    throw new Error(`Upload failed: ${response.status}`)
-  }
-  return response.json()
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+
+    xhr.onload = () => {
+      if (xhr.status === 401) {
+        localStorage.removeItem('classycut_token')
+        window.location.href = '/login'
+        reject(new Error('Unauthorized'))
+      } else if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(JSON.parse(xhr.responseText))
+      } else {
+        reject(new Error(`Upload failed: ${xhr.status}`))
+      }
+    }
+
+    xhr.onerror = () => reject(new Error('Network error'))
+    xhr.send(formData)
+  })
 }
 
 export async function deleteMedia(mediaId: string): Promise<void> {

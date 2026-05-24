@@ -76,7 +76,7 @@ def get_media(media_id: str, db: DbSession, current_user: CurrentUser):
 
 
 @router.get("/media/{media_id}/waveform")
-def get_waveform(media_id: str, db: DbSession, current_user: CurrentUser, samples: int = 800):
+def get_waveform(media_id: str, db: DbSession, samples: int = 800):
     """Return normalized waveform amplitude data for visualization."""
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:
@@ -86,7 +86,7 @@ def get_waveform(media_id: str, db: DbSession, current_user: CurrentUser, sample
 
 
 @router.get("/media/{media_id}/stream")
-def stream_media(media_id: str, db: DbSession, current_user: CurrentUser):
+def stream_media(media_id: str, db: DbSession):
     """Stream media file with range request support for video playback."""
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:

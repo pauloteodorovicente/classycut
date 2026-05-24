@@ -37,6 +37,7 @@ export default function EditorPage() {
   const { activeTool } = useUIStore()
   const { undo, redo, clear: clearHistory } = useHistoryStore()
   const [showShareModal, setShowShareModal] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -87,13 +88,20 @@ export default function EditorPage() {
   }, [undo, redo])
 
   const uploadMutation = useMutation({
-    mutationFn: (files: File[]) => uploadMedia(projectId!, files),
+    mutationFn: (files: File[]) => {
+      setUploadProgress(0)
+      return uploadMedia(projectId!, files, setUploadProgress)
+    },
     onSuccess: (newMedia) => {
+      setUploadProgress(null)
       addMediaFiles(newMedia)
       queryClient.invalidateQueries({ queryKey: ['media', projectId] })
       toast.success(`${newMedia.length} arquivo(s) importado(s)`)
     },
-    onError: () => toast.error('Erro ao importar arquivos'),
+    onError: () => {
+      setUploadProgress(null)
+      toast.error('Erro ao importar arquivos')
+    },
   })
 
   const deleteMutation = useMutation({
@@ -125,21 +133,33 @@ export default function EditorPage() {
         <Share2 className="w-3.5 h-3.5" />
         Compartilhar
       </button>
-      <label className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded text-xs font-medium cursor-pointer transition-colors">
-        <Upload className="w-3.5 h-3.5" />
-        Importar
-        <input
-          type="file"
-          multiple
-          accept="video/*,audio/*"
-          className="hidden"
-          onChange={(e) => {
-            const files = Array.from(e.target.files || [])
-            if (files.length > 0) uploadMutation.mutate(files)
-            e.target.value = ''
-          }}
-        />
-      </label>
+      {uploadProgress !== null ? (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-tertiary)] rounded text-xs font-medium min-w-[140px]">
+          <div className="flex-1 bg-[var(--border)] rounded-full h-1.5">
+            <div
+              className="bg-[var(--accent)] h-1.5 rounded-full transition-all duration-200"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <span className="text-[var(--text-secondary)] tabular-nums">{uploadProgress}%</span>
+        </div>
+      ) : (
+        <label className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded text-xs font-medium cursor-pointer transition-colors">
+          <Upload className="w-3.5 h-3.5" />
+          Importar
+          <input
+            type="file"
+            multiple
+            accept="video/*,audio/*"
+            className="hidden"
+            onChange={(e) => {
+              const files = Array.from(e.target.files || [])
+              if (files.length > 0) uploadMutation.mutate(files)
+              e.target.value = ''
+            }}
+          />
+        </label>
+      )}
     </div>
   )
 
