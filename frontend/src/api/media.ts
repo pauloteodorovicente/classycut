@@ -9,9 +9,28 @@ export async function listMedia(projectId: string): Promise<MediaFile[]> {
 export async function uploadMedia(projectId: string, files: File[]): Promise<MediaFile[]> {
   const formData = new FormData()
   files.forEach((file) => formData.append('files', file))
-  // Do NOT set Content-Type manually — axios auto-sets multipart/form-data with the correct boundary
-  const { data } = await api.post(`/projects/${projectId}/media`, formData)
-  return data
+
+  const base = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api/v1`
+    : '/api/v1'
+  const token = localStorage.getItem('classycut_token')
+
+  // Use fetch instead of axios so the browser sets Content-Type with the correct multipart boundary
+  const response = await fetch(`${base}/projects/${projectId}/media`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('classycut_token')
+    window.location.href = '/login'
+    throw new Error('Unauthorized')
+  }
+  if (!response.ok) {
+    throw new Error(`Upload failed: ${response.status}`)
+  }
+  return response.json()
 }
 
 export async function deleteMedia(mediaId: string): Promise<void> {
