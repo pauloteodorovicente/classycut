@@ -2,21 +2,22 @@ FROM mwader/static-ffmpeg:7.0 AS ffmpeg-builder
 
 FROM python:3.12-slim
 
-# Copy statically compiled ffmpeg binaries (avoids apt-get network issues)
+# Copy statically compiled ffmpeg binaries (no apt-get needed)
 COPY --from=ffmpeg-builder /ffmpeg /usr/local/bin/ffmpeg
 COPY --from=ffmpeg-builder /ffprobe /usr/local/bin/ffprobe
 
 WORKDIR /app
 
 # Install Python dependencies
-COPY pyproject.toml ./
+# Paths are relative to the repository root (Railway build context)
+COPY backend/pyproject.toml ./pyproject.toml
 RUN pip install --no-cache-dir . && \
     pip install --no-cache-dir uvicorn[standard]
 
 # Copy application code and startup script
-COPY app/ ./app/
-COPY alembic.ini ./
-COPY start.sh ./
+COPY backend/app/ ./app/
+COPY backend/alembic.ini ./alembic.ini
+COPY backend/start.sh ./start.sh
 RUN chmod +x start.sh
 
 # Create storage directories
