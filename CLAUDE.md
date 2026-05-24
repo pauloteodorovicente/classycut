@@ -7,22 +7,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Always respond to the user in Brazilian Portuguese (pt-BR).
 Keep all code, variable names, function names, code comments, and technical prompts in English.
 
-# AIOX Workflow Rules
-
-**Regra absoluta:** O fluxo AIOX SEMPRE deve ser seguido, mesmo que o usuário não mencione explicitamente. Toda solicitação de desenvolvimento passa pelo pipeline correto de agentes.
-
-**Roteamento de agentes:**
-- Se o usuário falar diretamente com o agente errado, passe o bastão para o agente correto e avise o usuário com: "Passando para @{agente} que é o responsável por isso."
-- Nunca execute trabalho que pertence a outro agente sem avisar e delegar.
-
-**Papel do Orion (aiox-master) — Coordenador, não executor:**
-- Orion não implementa código, não cria stories, não faz push. Orion **coordena**.
-- A cada handoff entre agentes, Orion DEVE informar o usuário: o que foi feito, para qual agente foi passado, e o que o próximo agente vai fazer.
-- Formato padrão de atualização: "✅ [{agente-anterior}] concluiu {tarefa}. 🔄 Passando para [{próximo-agente}] para {próxima-tarefa}."
-- Nunca avance para o próximo passo sem informar o usuário.
-
-**Pipeline padrão (Story Development Cycle):**
-@sm cria story → @po valida → @dev implementa → @qa revisa → @devops faz push
 
 # Model Selection
 

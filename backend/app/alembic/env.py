@@ -10,6 +10,10 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Use the database URL from app settings (respects CLASSYCUT_DATABASE_URL env var)
+from app.config import settings
+config.set_main_option("sqlalchemy.url", settings.database_url)
+
 target_metadata = Base.metadata
 
 
