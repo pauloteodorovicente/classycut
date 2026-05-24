@@ -9,9 +9,8 @@ export async function listMedia(projectId: string): Promise<MediaFile[]> {
 export async function uploadMedia(projectId: string, files: File[]): Promise<MediaFile[]> {
   const formData = new FormData()
   files.forEach((file) => formData.append('files', file))
-  const { data } = await api.post(`/projects/${projectId}/media`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  // Do NOT set Content-Type manually — axios auto-sets multipart/form-data with the correct boundary
+  const { data } = await api.post(`/projects/${projectId}/media`, formData)
   return data
 }
 
@@ -28,7 +27,10 @@ export async function mergeMedia(
 }
 
 export function getStreamUrl(mediaId: string): string {
-  return `/api/v1/media/${mediaId}/stream`
+  const base = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api/v1`
+    : '/api/v1'
+  return `${base}/media/${mediaId}/stream`
 }
 
 export async function getWaveform(mediaId: string, samples = 800): Promise<number[]> {
