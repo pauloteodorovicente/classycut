@@ -1,28 +1,7 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import Response
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-
-
-class CORSMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        origin = request.headers.get("origin", "*")
-        if request.method == "OPTIONS":
-            return Response(
-                status_code=204,
-                headers={
-                    "Access-Control-Allow-Origin": origin,
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-                    "Access-Control-Allow-Headers": "*",
-                    "Access-Control-Allow-Credentials": "true",
-                    "Access-Control-Max-Age": "86400",
-                },
-            )
-        response = await call_next(request)
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        return response
 
 
 def create_app() -> FastAPI:
@@ -33,7 +12,13 @@ def create_app() -> FastAPI:
         openapi_url="/api/openapi.json",
     )
 
-    app.add_middleware(CORSMiddleware)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     from app.api.auth import router as auth_router
     from app.api.projects import router as projects_router
