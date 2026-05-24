@@ -30,7 +30,7 @@ ENV CLASSYCUT_DATABASE_URL="sqlite:////data/classycut.db" \
     CLASSYCUT_EXPORT_DIR="/data/exports" \
     CLASSYCUT_TEMP_DIR="/data/temp" \
     CLASSYCUT_DEBUG="false" \
-    CLASSYCUT_CORS_ORIGINS='["http://localhost","http://localhost:80"]'
+    CLASSYCUT_CORS_ORIGINS='["*"]'
 
 EXPOSE 8000
 
