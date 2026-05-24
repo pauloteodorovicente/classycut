@@ -22,7 +22,7 @@ export function useWaveform(
     return () => { cancelled = true }
   }, [mediaId])
 
-  const waveformData = fetchState?.id === mediaId ? fetchState.data : []
+  const waveformData = fetchState !== null && fetchState.id === mediaId ? fetchState.data : []
   const isLoading = !!mediaId && fetchState?.id !== mediaId
   const waveformColor =
     mediaType === 'audio'

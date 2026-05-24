@@ -16,6 +16,7 @@ export interface TranscriptionSegment {
 export interface TranscriptionResult {
   language: string
   segments: TranscriptionSegment[]
+  job_id?: string
 }
 
 export interface TranscribeRequest {
