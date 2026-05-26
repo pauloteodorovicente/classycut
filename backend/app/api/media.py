@@ -23,37 +23,38 @@ def upload_media(project_id: str, db: DbSession, current_user: CurrentUser, file
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    results = []
-    for file in files:
-        # Save file to disk
-        file_path = save_upload(file, project_id)
+    try:
+        results = []
+        for file in files:
+            file_path = save_upload(file, project_id)
+            metadata = extract_metadata(file_path)
+            file_size = os.path.getsize(file_path)
 
-        # Extract metadata
-        metadata = extract_metadata(file_path)
-        file_size = os.path.getsize(file_path)
+            media = MediaFile(
+                project_id=project_id,
+                filename=file.filename or "unknown",
+                file_path=str(file_path),
+                media_type=metadata["media_type"],
+                duration_ms=metadata["duration_ms"],
+                width=metadata["width"],
+                height=metadata["height"],
+                fps=metadata["fps"],
+                codec=metadata["codec"],
+                file_size=file_size,
+                has_audio=metadata["has_audio"],
+            )
+            db.add(media)
+            results.append(media)
 
-        # Create DB record
-        media = MediaFile(
-            project_id=project_id,
-            filename=file.filename or "unknown",
-            file_path=str(file_path),
-            media_type=metadata["media_type"],
-            duration_ms=metadata["duration_ms"],
-            width=metadata["width"],
-            height=metadata["height"],
-            fps=metadata["fps"],
-            codec=metadata["codec"],
-            file_size=file_size,
-            has_audio=metadata["has_audio"],
-        )
-        db.add(media)
-        results.append(media)
+        db.commit()
+        for media in results:
+            db.refresh(media)
 
-    db.commit()
-    for media in results:
-        db.refresh(media)
-
-    return results
+        return results
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
 
 @router.get("/projects/{project_id}/media", response_model=list[MediaResponse])
