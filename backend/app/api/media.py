@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
 from app.api.deps import CurrentUser, DbSession
@@ -18,7 +18,7 @@ router = APIRouter(tags=["media"])
 
 
 @router.post("/projects/{project_id}/media", response_model=list[MediaResponse], status_code=201)
-def upload_media(project_id: str, files: list[UploadFile], db: DbSession, current_user: CurrentUser):
+def upload_media(project_id: str, db: DbSession, current_user: CurrentUser, files: list[UploadFile] = File(...)):
     project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
