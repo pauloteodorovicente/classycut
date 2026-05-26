@@ -23,10 +23,12 @@ def upload_media(project_id: str, db: DbSession, current_user: CurrentUser, file
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    results = []
+    saved_paths = []
     try:
-        results = []
         for file in files:
             file_path = save_upload(file, project_id)
+            saved_paths.append(file_path)
             metadata = extract_metadata(file_path)
             file_size = os.path.getsize(file_path)
 
@@ -54,6 +56,12 @@ def upload_media(project_id: str, db: DbSession, current_user: CurrentUser, file
     except HTTPException:
         raise
     except Exception as e:
+        # Clean up any files already written to disk to avoid filling the volume
+        for p in saved_paths:
+            try:
+                Path(p).unlink(missing_ok=True)
+            except OSError:
+                pass
         raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
 
