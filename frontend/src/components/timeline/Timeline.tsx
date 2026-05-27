@@ -245,7 +245,7 @@ export default function Timeline() {
                   <div
                     key={seg.id}
                     className={`absolute top-0 h-full border-r border-[var(--bg-secondary)] hover:brightness-125 cursor-pointer
-                      ${seg.keep ? 'bg-green-500/35' : 'bg-red-500/45'}`}
+                      ${seg.keep ? 'bg-blue-400/20' : 'bg-red-400/20'}`}
                     style={{ left: `${left}%`, width: `${Math.max(width, 0.1)}%` }}
                     onClick={(e) => e.stopPropagation()}
                     title={`${seg.keep ? 'Manter' : 'Remover'}: ${formatDuration(seg.start_ms)} – ${formatDuration(seg.end_ms)}`}
@@ -263,11 +263,11 @@ export default function Timeline() {
             {/* Legend */}
             <div className="h-5 flex items-center gap-4 px-3 border-t border-[var(--border)]">
               <div className="flex items-center gap-1">
-                <div className="w-3 h-2 bg-green-500/35 rounded-sm" />
+                <div className="w-3 h-2 bg-blue-400/20 rounded-sm" />
                 <span className="text-[9px] text-[var(--text-secondary)]">Manter</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-2 bg-red-500/45 rounded-sm" />
+                <div className="w-3 h-2 bg-red-400/20 rounded-sm" />
                 <span className="text-[9px] text-[var(--text-secondary)]">Remover</span>
               </div>
               <div className="ml-auto text-[9px] text-[var(--text-secondary)] font-mono">
@@ -378,9 +378,9 @@ export default function Timeline() {
               const width = (seg.duration_ms / totalMs) * 100
 
               let bgColor: string
-              if (seg.type === 'speech') bgColor = 'bg-blue-500/40'
-              else if (seg.keep) bgColor = 'bg-gray-500/30'
-              else bgColor = 'bg-red-500/40'
+              if (seg.type === 'speech') bgColor = 'bg-blue-400/20'
+              else if (seg.keep) bgColor = 'bg-slate-400/15'
+              else bgColor = 'bg-red-400/20'
 
               return (
                 <div
@@ -419,15 +419,15 @@ export default function Timeline() {
           {/* Legend + zoom indicator */}
           <div className="h-5 flex items-center gap-4 px-3 border-t border-[var(--border)]">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-2 bg-blue-500/40 rounded-sm" />
+              <div className="w-3 h-2 bg-blue-400/20 rounded-sm" />
               <span className="text-[9px] text-[var(--text-secondary)]">Fala</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-2 bg-red-500/40 rounded-sm" />
+              <div className="w-3 h-2 bg-red-400/20 rounded-sm" />
               <span className="text-[9px] text-[var(--text-secondary)]">Silêncio (remover)</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-2 bg-gray-500/30 rounded-sm" />
+              <div className="w-3 h-2 bg-slate-400/15 rounded-sm" />
               <span className="text-[9px] text-[var(--text-secondary)]">Silêncio (manter)</span>
             </div>
             <div className="ml-auto text-[9px] text-[var(--text-secondary)] font-mono">
