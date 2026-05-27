@@ -186,7 +186,7 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
 
       {!selectedMediaId && (
         <p className="text-xs text-[var(--text-secondary)]">
-          Selecione um arquivo de mídia na aba Media
+          Selecione um arquivo de mídia na aba Mídia
         </p>
       )}
 

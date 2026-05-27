@@ -112,7 +112,7 @@ export default function BatchTool({ projectId }: BatchToolProps) {
           setUpscaleJobId(null)
           stopPolling()
           queryClient.invalidateQueries({ queryKey: ['media', projectId] })
-          toast.success('Upscale concluído! Arquivo disponível na aba Media.')
+          toast.success('Upscale concluído! Arquivo disponível na aba Mídia.')
         } else if (job.status === 'error') {
           setUpscaleJobId(null)
           stopPolling()
@@ -324,7 +324,7 @@ export default function BatchTool({ projectId }: BatchToolProps) {
         <div className="space-y-3">
           {!selectedMediaId && (
             <p className="text-xs text-[var(--text-secondary)]">
-              Selecione um arquivo de mídia na aba Media
+              Selecione um arquivo de mídia na aba Mídia
             </p>
           )}
 

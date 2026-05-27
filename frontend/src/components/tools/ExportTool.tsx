@@ -78,7 +78,7 @@ export default function ExportTool({ projectId }: ExportToolProps) {
           setExportJobId(null)
           stopPolling()
           queryClient.invalidateQueries({ queryKey: ['media', projectId] })
-          toast.success('Exportação concluída! Arquivo disponível na aba Media.')
+          toast.success('Exportação concluída! Arquivo disponível na aba Mídia.')
         } else if (job.status === 'error') {
           setExportJobId(null)
           stopPolling()
@@ -122,7 +122,7 @@ export default function ExportTool({ projectId }: ExportToolProps) {
 
       {!selectedMediaId && (
         <p className="text-xs text-[var(--text-secondary)]">
-          Selecione um arquivo de mídia na aba Media
+          Selecione um arquivo de mídia na aba Mídia
         </p>
       )}
 

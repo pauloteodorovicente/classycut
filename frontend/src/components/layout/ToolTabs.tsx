@@ -18,7 +18,7 @@ import {
 import { useUIStore } from '../../stores/uiStore'
 
 const tools = [
-  { id: 'media' as const, icon: Film, label: 'Media' },
+  { id: 'media' as const, icon: Film, label: 'Mídia' },
   { id: 'merge' as const, icon: Merge, label: 'Merge' },
   { id: 'silence' as const, icon: Scissors, label: 'Auto-Corte' },
   { id: 'cut' as const, icon: Split, label: 'Corte Manual' },

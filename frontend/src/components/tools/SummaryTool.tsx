@@ -41,7 +41,7 @@ export default function SummaryTool({ projectId }: SummaryToolProps) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <p className="text-xs text-[var(--text-secondary)] text-center">
-          Selecione um arquivo de mídia na aba Media
+          Selecione um arquivo de mídia na aba Mídia
         </p>
       </div>
     )

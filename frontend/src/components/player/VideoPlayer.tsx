@@ -78,7 +78,7 @@ export default function VideoPlayer({ mediaId }: VideoPlayerProps) {
     return (
       <div className="flex-1 flex items-center justify-center bg-black rounded-lg">
         <p className="text-[var(--text-secondary)] text-sm">
-          Selecione um arquivo de media para visualizar
+          Selecione um arquivo de mídia para visualizar
         </p>
       </div>
     )
