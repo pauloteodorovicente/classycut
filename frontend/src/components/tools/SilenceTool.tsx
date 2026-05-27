@@ -256,6 +256,12 @@ export default function SilenceTool({ projectId }: SilenceToolProps) {
         {detectionJobId ? 'Detectando...' : 'Detectar Silêncio'}
       </button>
 
+      {detectionJobId && (
+        <div className="h-1 w-full bg-[var(--border)] rounded-full overflow-hidden -mt-2">
+          <div className="h-full w-2/5 bg-[var(--accent)] rounded-full animate-progress-bar" />
+        </div>
+      )}
+
       {/* Results */}
       {segments.length > 0 && (
         <>
@@ -341,6 +347,12 @@ export default function SilenceTool({ projectId }: SilenceToolProps) {
             )}
             {cutJobId ? 'Cortando...' : 'Executar Corte'}
           </button>
+
+          {cutJobId && (
+            <div className="h-1 w-full bg-[var(--border)] rounded-full overflow-hidden">
+              <div className="h-full w-2/5 bg-green-500 rounded-full animate-progress-bar" />
+            </div>
+          )}
         </>
       )}
     </div>

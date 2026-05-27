@@ -209,6 +209,12 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
         {transcribeJobId ? 'Transcrevendo...' : 'Transcrever'}
       </button>
 
+      {transcribeJobId && (
+        <div className="h-1 w-full bg-[var(--border)] rounded-full overflow-hidden -mt-2">
+          <div className="h-full w-2/5 bg-[var(--accent)] rounded-full animate-progress-bar" />
+        </div>
+      )}
+
       {/* Results */}
       {segments.length > 0 && (
         <>

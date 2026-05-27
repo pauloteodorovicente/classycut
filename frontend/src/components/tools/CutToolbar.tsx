@@ -270,6 +270,12 @@ export default function CutToolbar({ projectId }: CutToolbarProps) {
         )}
         {jobId ? 'Processando...' : 'Aplicar cortes'}
       </button>
+
+      {jobId && (
+        <div className="h-1 w-full bg-[var(--border)] rounded-full overflow-hidden">
+          <div className="h-full w-2/5 bg-green-500 rounded-full animate-progress-bar" />
+        </div>
+      )}
     </div>
   )
 }
