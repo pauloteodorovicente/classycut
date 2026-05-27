@@ -79,7 +79,7 @@ export default function SilenceTool({ projectId }: SilenceToolProps) {
           setCutJobId(null)
           clearInterval(interval)
           queryClient.invalidateQueries({ queryKey: ['media', projectId] })
-          toast.success('Corte concluído! Novo arquivo criado.')
+          toast.success('Corte concluído! Arquivo adicionado à aba Mídia.')
         } else if (job.status === 'error') {
           setCutJobId(null)
           clearInterval(interval)
@@ -172,6 +172,10 @@ export default function SilenceTool({ projectId }: SilenceToolProps) {
       <div>
         <label className="block text-xs text-[var(--text-secondary)] mb-1">
           Threshold: {noiseDb} dB
+          <span
+            className="ml-1 cursor-help opacity-60 hover:opacity-100"
+            title="Nível de volume abaixo do qual o áudio é considerado silêncio. Valores mais altos (ex: -20 dB) detectam mais silêncios; valores mais baixos (ex: -50 dB) só detectam silêncios muito profundos."
+          >ⓘ</span>
         </label>
         <input
           type="range"
@@ -192,6 +196,10 @@ export default function SilenceTool({ projectId }: SilenceToolProps) {
       <div>
         <label className="block text-xs text-[var(--text-secondary)] mb-1">
           Duração mínima: {minDuration.toFixed(1)}s
+          <span
+            className="ml-1 cursor-help opacity-60 hover:opacity-100"
+            title="Duração mínima de um trecho silencioso para ser detectado. Pausas mais curtas que esse valor são ignoradas e mantidas no vídeo."
+          >ⓘ</span>
         </label>
         <input
           type="range"
@@ -212,6 +220,10 @@ export default function SilenceTool({ projectId }: SilenceToolProps) {
       <div>
         <label className="block text-xs text-[var(--text-secondary)] mb-1">
           Margem de fala: {speechPaddingMs}ms
+          <span
+            className="ml-1 cursor-help opacity-60 hover:opacity-100"
+            title="Tempo extra mantido antes e depois de cada trecho de fala. Evita cortar o início ou fim das palavras. Aumente se as palavras estiverem sendo cortadas."
+          >ⓘ</span>
         </label>
         <input
           type="range"
