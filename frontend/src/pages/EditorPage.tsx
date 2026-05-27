@@ -29,7 +29,11 @@ import { listMedia, uploadMedia, deleteMedia } from '../api/media'
 import { useProjectStore } from '../stores/projectStore'
 import { useUIStore } from '../stores/uiStore'
 import { useHistoryStore } from '../stores/historyStore'
+import { useSilenceStore } from '../stores/silenceStore'
+import { useTranscriptionStore } from '../stores/transcriptionStore'
+import { useCutStore } from '../stores/cutStore'
 import { useTranscriptionPoller } from '../hooks/useTranscriptionPoller'
+import { useTabBadge } from '../hooks/useTabBadge'
 
 export default function EditorPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -38,8 +42,15 @@ export default function EditorPage() {
   const { selectedMediaId, setMediaFiles, addMediaFiles, removeMediaFile } = useProjectStore()
   const { activeTool } = useUIStore()
   const { undo, redo, clear: clearHistory } = useHistoryStore()
+  const { detectionJobId, cutJobId: silenceCutJobId } = useSilenceStore()
+  const { transcribeJobId } = useTranscriptionStore()
+  const { jobId: manualCutJobId } = useCutStore()
+
+  const activeJobCount = [detectionJobId, silenceCutJobId, transcribeJobId, manualCutJobId]
+    .filter(Boolean).length
 
   useTranscriptionPoller()
+  useTabBadge(activeJobCount)
   const [showShareModal, setShowShareModal] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 
