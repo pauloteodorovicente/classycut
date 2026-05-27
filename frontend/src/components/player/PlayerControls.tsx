@@ -81,9 +81,25 @@ export default function PlayerControls({ videoRef }: PlayerControlsProps) {
         </button>
       </div>
 
-      <button onClick={toggleMute} className="p-1 hover:text-[var(--accent)] transition-colors">
-        {volume > 0 ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-      </button>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          onClick={toggleMute}
+          className="p-1 hover:text-[var(--accent)] transition-colors"
+          title={volume > 0 ? 'Mudo' : 'Ativar som'}
+        >
+          {volume > 0 ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.02}
+          value={volume}
+          onChange={(e) => setVolume(Number(e.target.value))}
+          className="w-16 accent-[var(--accent)] cursor-pointer"
+          title={`Volume: ${Math.round(volume * 100)}%`}
+        />
+      </div>
     </div>
   )
 }
