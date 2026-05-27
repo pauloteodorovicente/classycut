@@ -25,7 +25,7 @@ export const useSilenceStore = create<SilenceStore>((set, get) => ({
   segments: [],
   noiseDb: -30,
   minDuration: 0.5,
-  speechPaddingMs: 150,
+  speechPaddingMs: 300,
   detectionJobId: null,
   cutJobId: null,
   setSegments: (segments) => set({ segments }),
