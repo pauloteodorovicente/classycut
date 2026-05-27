@@ -11,6 +11,7 @@ import Timeline from '../components/timeline/Timeline'
 import MergeTool from '../components/tools/MergeTool'
 import SilenceTool from '../components/tools/SilenceTool'
 import TranscriptionTool from '../components/tools/TranscriptionTool'
+import SubtitlesTool from '../components/tools/SubtitlesTool'
 import ExportTool from '../components/tools/ExportTool'
 import ZoomTool from '../components/tools/ZoomTool'
 import AITool from '../components/tools/AITool'
@@ -170,8 +171,10 @@ export default function EditorPage() {
         <MergeTool projectId={projectId} />
       ) : activeTool === 'silence' ? (
         <SilenceTool projectId={projectId} />
-      ) : activeTool === 'transcription' || activeTool === 'subtitles' ? (
+      ) : activeTool === 'transcription' ? (
         <TranscriptionTool projectId={projectId} />
+      ) : activeTool === 'subtitles' ? (
+        <SubtitlesTool projectId={projectId} />
       ) : activeTool === 'zoom' ? (
         <ZoomTool projectId={projectId} />
       ) : activeTool === 'export' ? (
