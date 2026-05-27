@@ -49,6 +49,20 @@ export async function deleteMedia(mediaId: string): Promise<void> {
   await api.delete(`/media/${mediaId}`)
 }
 
+export async function listTrash(projectId: string): Promise<MediaFile[]> {
+  const { data } = await api.get(`/projects/${projectId}/trash`)
+  return data
+}
+
+export async function restoreMedia(mediaId: string): Promise<MediaFile> {
+  const { data } = await api.post(`/media/${mediaId}/restore`)
+  return data
+}
+
+export async function permanentDeleteMedia(mediaId: string): Promise<void> {
+  await api.delete(`/media/${mediaId}/permanent`)
+}
+
 export async function mergeMedia(
   projectId: string,
   payload: MergeRequest

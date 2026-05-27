@@ -11,6 +11,7 @@ export interface MediaFile {
   codec: string | null
   file_size: number | null
   has_audio: boolean
+  is_deleted: boolean
   created_at: string
 }
 

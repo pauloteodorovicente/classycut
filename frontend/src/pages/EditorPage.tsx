@@ -210,7 +210,7 @@ export default function EditorPage() {
       ) : activeTool === 'summary' ? (
         <SummaryTool projectId={projectId} />
       ) : activeTool === 'media' ? (
-        <Sidebar onDeleteMedia={(id) => deleteMutation.mutate(id)} />
+        <Sidebar projectId={projectId} onDeleteMedia={(id) => deleteMutation.mutate(id)} />
       ) : (
         <div className="flex-1 flex items-center justify-center p-4">
           <p className="text-xs text-[var(--text-secondary)] text-center">Em breve</p>
