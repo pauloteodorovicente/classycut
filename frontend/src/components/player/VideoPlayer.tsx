@@ -58,6 +58,19 @@ export default function VideoPlayer({ mediaId }: VideoPlayerProps) {
           if (videoRef.current.paused) videoRef.current.play()
           else videoRef.current.pause()
         }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        if (videoRef.current) {
+          videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 5)
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        if (videoRef.current) {
+          videoRef.current.currentTime = Math.min(
+            videoRef.current.duration || 0,
+            videoRef.current.currentTime + 5
+          )
+        }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setVolume(Math.min(1, volume + 0.05))
