@@ -26,6 +26,7 @@ class MediaFile(Base):
     codec: Mapped[str | None] = mapped_column(String(50), nullable=True)
     file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
     has_audio: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     project: Mapped["Project"] = relationship(back_populates="media_files")

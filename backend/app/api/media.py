@@ -69,11 +69,24 @@ def upload_media(project_id: str, db: DbSession, current_user: CurrentUser, file
 def list_media(project_id: str, db: DbSession, current_user: CurrentUser):
     media_files = (
         db.query(MediaFile)
-        .filter(MediaFile.project_id == project_id)
+        .filter(MediaFile.project_id == project_id, MediaFile.is_deleted == False)  # noqa: E712
         .order_by(MediaFile.created_at.desc())
         .all()
     )
     return media_files
+
+
+@router.get("/projects/{project_id}/trash", response_model=list[MediaResponse])
+def list_trash(project_id: str, db: DbSession, current_user: CurrentUser):
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return (
+        db.query(MediaFile)
+        .filter(MediaFile.project_id == project_id, MediaFile.is_deleted == True)  # noqa: E712
+        .order_by(MediaFile.created_at.desc())
+        .all()
+    )
 
 
 @router.get("/media/{media_id}", response_model=MediaResponse)
@@ -126,15 +139,37 @@ def stream_media(media_id: str, db: DbSession):
 
 @router.delete("/media/{media_id}", status_code=204)
 def delete_media(media_id: str, db: DbSession, current_user: CurrentUser):
+    """Soft-delete: moves to trash. File stays on disk until permanently deleted."""
     media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
+    media.is_deleted = True
+    db.commit()
 
-    # Delete file from disk
+
+@router.post("/media/{media_id}/restore", response_model=MediaResponse)
+def restore_media(media_id: str, db: DbSession, current_user: CurrentUser):
+    """Restore a trashed file back to the active media list."""
+    media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    if not media.is_deleted:
+        raise HTTPException(status_code=400, detail="Media is not in trash")
+    media.is_deleted = False
+    db.commit()
+    db.refresh(media)
+    return media
+
+
+@router.delete("/media/{media_id}/permanent", status_code=204)
+def permanent_delete_media(media_id: str, db: DbSession, current_user: CurrentUser):
+    """Permanently delete a trashed file from disk and database."""
+    media = db.query(MediaFile).filter(MediaFile.id == media_id).first()
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
     file_path = Path(media.file_path)
     if file_path.exists():
         file_path.unlink()
-
     db.delete(media)
     db.commit()
 

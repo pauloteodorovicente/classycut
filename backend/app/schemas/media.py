@@ -16,6 +16,7 @@ class MediaResponse(BaseModel):
     codec: str | None = None
     file_size: int | None = None
     has_audio: bool = False
+    is_deleted: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}
