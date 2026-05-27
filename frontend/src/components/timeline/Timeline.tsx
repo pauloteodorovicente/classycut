@@ -68,19 +68,6 @@ export default function Timeline() {
     [zoomLevel]
   )
 
-  // Auto-scroll to keep playhead visible
-  useEffect(() => {
-    if (!scrollRef.current || duration <= 0) return
-    const container = scrollRef.current
-    const innerWidth = container.scrollWidth
-    const playheadX = (currentTime / duration) * innerWidth
-    const viewLeft = container.scrollLeft
-    const viewRight = viewLeft + container.clientWidth
-    if (playheadX < viewLeft + 20 || playheadX > viewRight - 20) {
-      container.scrollLeft = Math.max(0, playheadX - container.clientWidth / 2)
-    }
-  }, [currentTime, duration])
-
   // Position helpers
   const xToTime = useCallback(
     (x: number, containerWidth: number): number => {
