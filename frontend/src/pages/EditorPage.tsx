@@ -29,6 +29,7 @@ import { listMedia, uploadMedia, deleteMedia } from '../api/media'
 import { useProjectStore } from '../stores/projectStore'
 import { useUIStore } from '../stores/uiStore'
 import { useHistoryStore } from '../stores/historyStore'
+import { useTranscriptionPoller } from '../hooks/useTranscriptionPoller'
 
 export default function EditorPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -37,6 +38,8 @@ export default function EditorPage() {
   const { selectedMediaId, setMediaFiles, addMediaFiles, removeMediaFile } = useProjectStore()
   const { activeTool } = useUIStore()
   const { undo, redo, clear: clearHistory } = useHistoryStore()
+
+  useTranscriptionPoller()
   const [showShareModal, setShowShareModal] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FileText, Loader2, Download, Eye, EyeOff, Pencil, Check, Flame } from 'lucide-react'
 import TranscriptEditor from './TranscriptEditor'
 import toast from 'react-hot-toast'
@@ -68,44 +68,9 @@ export default function TranscriptionTool({ projectId }: TranscriptionToolProps)
   const [burnJobId, setBurnJobId] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const burnPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current)
-      pollRef.current = null
-    }
-  }, [])
-
-  // Poll transcription job
-  useEffect(() => {
-    if (!transcribeJobId) return
-    stopPolling()
-
-    pollRef.current = setInterval(async () => {
-      try {
-        const job = await getJob(transcribeJobId)
-        if (job.status === 'done' && job.result_json) {
-          const result = JSON.parse(job.result_json)
-          setSegments(result.segments)
-          setLanguage(result.language)
-          setCompletedTranscriptionJobId(transcribeJobId)
-          setTranscribeJobId(null)
-          stopPolling()
-          toast.success(`Transcrição concluída! Idioma: ${result.language}`)
-        } else if (job.status === 'error') {
-          setTranscribeJobId(null)
-          stopPolling()
-          toast.error(`Erro: ${job.error_message || 'Falha na transcrição'}`)
-        }
-      } catch {
-        // Keep polling on network errors
-      }
-    }, 2000)
-
-    return stopPolling
-  }, [transcribeJobId, setSegments, setLanguage, setCompletedTranscriptionJobId, setTranscribeJobId, stopPolling])
+  // Transcription job polling is handled globally by useTranscriptionPoller in EditorPage.
 
   // Load existing transcription when media changes
   useEffect(() => {
