@@ -37,10 +37,13 @@ def get_vf_filter(platform: str) -> str | None:
     # Center-crop to target AR, then scale.
     # If source is wider than target AR → crop horizontally.
     # If source is taller than target AR → crop vertically.
+    # setsar=1:1 forces square pixels — without it the encoder may inherit a
+    # non-square SAR from the source (e.g. 404:405) which confuses players.
     vf = (
         f"crop=if(gt(iw/ih\\,{w}/{h})\\,trunc(ih*{w}/{h}/2)*2\\,iw)"
         f":if(gt(iw/ih\\,{w}/{h})\\,ih\\,trunc(iw*{h}/{w}/2)*2),"
-        f"scale={w}:{h}"
+        f"scale={w}:{h},"
+        f"setsar=1:1"
     )
     return vf
 
