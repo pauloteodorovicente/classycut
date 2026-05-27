@@ -90,12 +90,18 @@ export default function VideoPlayer({ mediaId }: VideoPlayerProps) {
         <video
           ref={videoRef}
           src={getStreamUrl(mediaId)}
-          className="max-w-full max-h-full object-contain"
+          className="max-w-full max-h-full object-contain cursor-pointer"
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onClick={() => {
+            if (videoRef.current) {
+              if (videoRef.current.paused) videoRef.current.play()
+              else videoRef.current.pause()
+            }
+          }}
         />
         <SubtitleOverlay />
       </div>
