@@ -16,6 +16,7 @@ export default function Timeline() {
   const { activeTool } = useUIStore()
 
   const scrollRef = useRef<HTMLDivElement>(null)
+  const outerRef = useRef<HTMLDivElement>(null)
   const [zoomLevel, setZoomLevel] = useState(1)
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -56,17 +57,19 @@ export default function Timeline() {
     })
   }, [waveformData, zoomLevel, waveformColor])
 
-  // Ctrl+Wheel zoom
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
+  // Ctrl+Wheel zoom — must be non-passive so preventDefault actually works
+  useEffect(() => {
+    const el = outerRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey) return
       e.preventDefault()
       const delta = e.deltaY > 0 ? -0.2 : 0.2
-      const next = Math.min(10, Math.max(1, Math.round((zoomLevel + delta) * 10) / 10))
-      setZoomLevel(next)
-    },
-    [zoomLevel]
-  )
+      setZoomLevel((prev) => Math.min(10, Math.max(1, Math.round((prev + delta) * 10) / 10)))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
 
   // Position helpers
   const xToTime = useCallback(
@@ -178,8 +181,8 @@ export default function Timeline() {
   if (showCutTimeline) {
     return (
       <div
+        ref={outerRef}
         className="h-36 bg-[var(--bg-secondary)] border-t border-[var(--border)] flex flex-col select-none"
-        onWheel={handleWheel}
       >
         <div
           ref={scrollRef}
@@ -310,8 +313,8 @@ export default function Timeline() {
 
   return (
     <div
+      ref={outerRef}
       className="h-36 bg-[var(--bg-secondary)] border-t border-[var(--border)] flex flex-col select-none"
-      onWheel={handleWheel}
     >
       {/* Scrollable content */}
       <div
