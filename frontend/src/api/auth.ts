@@ -24,3 +24,7 @@ export async function getMe(): Promise<UserResponse> {
   const { data } = await api.get<UserResponse>('/auth/me')
   return data
 }
+
+export async function resetPassword(email: string, newPassword: string): Promise<void> {
+  await api.post('/auth/reset-password', { email, new_password: newPassword })
+}

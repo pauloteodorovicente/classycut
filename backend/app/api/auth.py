@@ -53,3 +53,18 @@ def login(data: LoginRequest, db: DbSession):
 @router.get("/me", response_model=UserResponse)
 def me(current_user: CurrentUser):
     return UserResponse(id=current_user.id, email=current_user.email)
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    new_password: str
+
+
+@router.post("/reset-password", status_code=200)
+def reset_password(data: ResetPasswordRequest, db: DbSession):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Email not found")
+    user.hashed_password = hash_password(data.new_password)
+    db.commit()
+    return {"message": "Password updated successfully"}
